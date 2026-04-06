@@ -54,7 +54,7 @@ When a box reaches a target, it changes color — this means **progress!**
 | S | Move Down |
 | D | Move Right |
 | R | Restart current level |
-| Q | Quit game |
+| Esc | Quit game |
 
 ---
 
