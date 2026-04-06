@@ -115,7 +115,7 @@ All changes must go through a recursive loop until:
                                                     ┌──────────────────────────────┐
                                                     │ 🎉 TASK COMPLETE             │
                                                     └──────────────────────────────┘
-
+```
     # 🔁 Recursive Loop Definition
     Fix → Restart → Re-check → Detect → Fix → Restart → ...
 
