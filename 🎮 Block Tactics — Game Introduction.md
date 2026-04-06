@@ -62,7 +62,7 @@ When a box reaches a target, it changes color — this means **progress!**
 
 1. Start the game
 2. Enter your username
-3. Choose a difficulty level
+3. Choose a difficulty level (start from 'Easy' by default)
 4. Observe the map carefully
 5. Plan your moves
 6. Start pushing boxes toward targets
