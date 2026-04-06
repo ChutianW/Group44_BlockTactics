@@ -1,4 +1,4 @@
-    # 🔁 Windsurf Recursive Development Workflow
+# 🔁 Windsurf Recursive Development Workflow
 
 ## 🎯 Purpose
 This document defines the mandatory workflow for all development tasks in this repository.
@@ -9,6 +9,7 @@ It ensures:
 - full-system awareness
 - structured improvements
 - proper documentation
+- compliance with COMP2113 / ENGG1340 project requirements
 
 ---
 
@@ -16,16 +17,21 @@ It ensures:
 
 > Never make an isolated change without re-checking the entire repository.
 
+> Never accept an implementation that works technically but violates project requirements.
+
 All changes must go through a recursive loop until:
 - the system is stable,
 - no bugs remain,
+- no requirement violations remain,
 - and the project runs correctly.
 
 ---
 
 # 🔄 Master Flowchart
+
+```text
     ┌──────────────────────────────┐
-    │        NEW PROMPT INPUT       │
+    │        NEW PROMPT INPUT      │
     └──────────────┬───────────────┘
                    ↓
     ┌──────────────────────────────┐
@@ -49,46 +55,66 @@ All changes must go through a recursive loop until:
     │ - Maintain clean structure   │
     └──────────────┬───────────────┘
                    ↓
-    ┌──────────────────────────────┐
-    │ 🌐 GLOBAL RE-CHECK           │
-    │ - Review entire repo         │
-    │ - Check interactions         │
-    │ - Validate dependencies      │
-    └──────────────┬───────────────┘
-                   ↓
-    ┌──────────────────────────────┐
-    │ 🐞 BUG DETECTION             │
-    │ - Logic / compile errors     │
-    │ - Runtime issues             │
-    │ - Regressions                │
-    └──────────────┬───────────────┘
+    ┌────────────────────────────────────────────┐
+    │ 📋 REQUIREMENT CHECK                       │
+    │ - Check COMP2113 / ENGG1340 compliance    │
+    │ - Verify no requirement is violated       │
+    │ - If violated, treat it as a bug          │
+    └──────────────┬─────────────────────────────┘
                    ↓
           ┌────────▼────────┐
-          │  BUG FOUND?     │
+          │ REQUIREMENT     │
+          │ VIOLATION?      │
           └───────┬────────┘
                   │
-    ┌─────────────┴─────────────┐
-    │                           │
-    Yes                         NO
-    ┌──────────────────────┐   ┌──────────────────────────────┐
-    │ 🔧 FIX BUG IMMEDIATELY│  │ ✅ COMPLETION CHECK         │
-    │ - Solve issue        │   │ - Feature complete           │
-    │ - Verify fix         │   │ - No breaking bugs           │
-    └──────────┬───────────┘   │ - Code compiles              │
-               │               │ - Program runs correctly     │
-               ↓               └──────────────┬───────────────┘
-       ┌──────────────────────┐              ↓
-       │ 🔁 RECURSIVE RESTART │      ┌──────────────────────────────┐
-       │ Return to beginning  │      │ 📂 DOCUMENT CHANGES          │
-       │ (Meta-thinking)      │      │ - What changed               │
-       └──────────┬───────────┘      │ - Why it changed             │
-                  │                  │ - Why it is better           │
-                  └──────────────────► - Files affected            │
-                                     └──────────────┬──────────────┘
-                                                    ↓
-                                     ┌──────────────────────────────┐
-                                     │ 🎉 TASK COMPLETE             │
-                                     └──────────────────────────────┘
+        ┌─────────┴─────────┐
+        │                   │
+       YES                  NO
+        │                   │
+        ↓                   ↓
+┌──────────────────────┐   ┌──────────────────────────────┐
+│ 🔧 FIX BUG IMMEDIATELY│   │ 🌐 GLOBAL RE-CHECK          │
+│ - Solve issue         │   │ - Review entire repo        │
+│ - Verify fix          │   │ - Check interactions        │
+└──────────┬───────────┘   │ - Validate dependencies     │
+           │               └──────────────┬───────────────┘
+           ↓                              ↓
+   ┌──────────────────────┐   ┌──────────────────────────────┐
+   │ 🔁 RECURSIVE RESTART │   │ 🐞 BUG DETECTION             │
+   │ Return to beginning  │   │ - Logic / compile errors    │
+   │ (Meta-thinking)      │   │ - Runtime issues            │
+   └──────────┬───────────┘   │ - Regressions               │
+              │               └──────────────┬───────────────┘
+              │                              ↓
+              │                    ┌────────▼────────┐
+              │                    │  BUG FOUND?     │
+              │                    └───────┬────────┘
+              │                            │
+              │              ┌─────────────┴─────────────┐
+              │              │                           │
+              │             YES                          NO
+              │              │                           │
+              │              ↓                           ↓
+              │    ┌──────────────────────┐   ┌──────────────────────────────┐
+              │    │ 🔧 FIX BUG IMMEDIATELY│   │ ✅ COMPLETION CHECK         │
+              │    │ - Solve issue         │   │ - Feature complete          │
+              │    │ - Verify fix          │   │ - No breaking bugs          │
+              │    └──────────┬───────────┘   │ - No requirement violation   │
+              │               │               │ - Code compiles              │
+              │               ↓               │ - Program runs correctly     │
+              │       ┌──────────────────────┐ └──────────────┬──────────────┘
+              │       │ 🔁 RECURSIVE RESTART │                ↓
+              │       │ Return to beginning  │     ┌──────────────────────────────┐
+              │       │ (Meta-thinking)      │     │ 📂 DOCUMENT CHANGES          │
+              │       └──────────┬───────────┘     │ - What changed               │
+              │                  │                 │ - Why it changed             │
+              └──────────────────┴────────────────► - Why it is better           │
+                                                    │ - Files affected            │
+                                                    └──────────────┬──────────────┘
+                                                                   ↓
+                                                    ┌──────────────────────────────┐
+                                                    │ 🎉 TASK COMPLETE             │
+                                                    └──────────────────────────────┘
 
     # 🔁 Recursive Loop Definition
     Fix → Restart → Re-check → Detect → Fix → Restart → ...
