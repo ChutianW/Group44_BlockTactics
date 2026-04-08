@@ -51,6 +51,7 @@ public:
     void clear();
     bool canUndo() const;
     int getHistorySize() const;
+    int getMaxHistory() const;
 };
 
 // —— 玩家操作 ——
