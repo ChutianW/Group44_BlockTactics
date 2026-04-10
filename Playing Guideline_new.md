@@ -1,18 +1,19 @@
 # Block Tactics - Playing Guideline
 
-## Bug Fix Applied
+## Bug Fixes Applied
 
-### Error Encountered
+### Bug 1: termios.h Not Found
+
+**Error:**
 ```
 player.cpp:3:10: fatal error: termios.h: No such file or directory
 ```
 
-### Root Cause Analysis
+**Root Cause:**
 - `<termios.h>` and `<unistd.h>` are **Linux/Unix-only headers**
-- The code was written for Linux but you're compiling on **Windows**
 - Windows uses `<conio.h>` with `_getch()` instead
 
-### Fix Applied
+**Fix Applied:**
 Modified `player.cpp` lines 1-10 to use cross-platform preprocessor directives:
 ```cpp
 #ifdef _WIN32
@@ -23,7 +24,25 @@ Modified `player.cpp` lines 1-10 to use cross-platform preprocessor directives:
 #endif
 ```
 
-Also modified the `getch()` function (lines 319-334) to use `_getch()` on Windows.
+---
+
+### Bug 2: getch() Name Conflict
+
+**Error:**
+```
+conio.h:272:15: error: ambiguating new declaration of 'int getch()'
+player.h:78:6: note: old declaration 'char getch()'
+```
+
+**Root Cause:**
+- Windows `<conio.h>` already defines `getch()` function
+- Our custom `getch()` function conflicts with it
+
+**Fix Applied:**
+- Renamed our function from `getch()` to `getKeyInput()` in:
+  - `player.h` (line 78)
+  - `player.cpp` (line 319)
+  - `main.cpp` (all occurrences)
 
 ---
 
