@@ -15,7 +15,8 @@ It may look simple at first — but every move matters!
 
 ## 🎯 Your Goal
 
-Push all boxes (`$`) onto the target positions (`^`).
+ Try Your Best:
+ Push all boxes (`$`) onto the target positions (`^`).
 
 When every target is covered by a box, **you win the level**.
 
