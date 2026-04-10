@@ -1,17 +1,41 @@
-# Block Tactics - Playing Guideline (Skeleton Version)
+# Block Tactics - Playing Guideline
 
-## Step-by-Step Instructions to Play the Game
+## Bug Fix Applied
+
+### Error Encountered
+```
+player.cpp:3:10: fatal error: termios.h: No such file or directory
+```
+
+### Root Cause Analysis
+- `<termios.h>` and `<unistd.h>` are **Linux/Unix-only headers**
+- The code was written for Linux but you're compiling on **Windows**
+- Windows uses `<conio.h>` with `_getch()` instead
+
+### Fix Applied
+Modified `player.cpp` lines 1-10 to use cross-platform preprocessor directives:
+```cpp
+#ifdef _WIN32
+    #include <conio.h>  // Windows
+#else
+    #include <termios.h>  // Linux/Mac
+    #include <unistd.h>
+#endif
+```
+
+Also modified the `getch()` function (lines 319-334) to use `_getch()` on Windows.
 
 ---
 
-## Step 1: Open PowerShell
+## Step-by-Step Instructions to Play
 
-- Press `Win + X` and select **Windows PowerShell**
-- Or search "PowerShell" in the Start menu
+### Step 1: Open PowerShell
+
+Press `Win + X` and select **Windows PowerShell**
 
 ---
 
-## Step 2: Navigate to Project Folder
+### Step 2: Navigate to Project Folder
 
 Type this command (copy and paste):
 ```powershell
@@ -20,11 +44,9 @@ cd "d:\港大教材\y2\comp 2113\Group44_BlockTactics_VS code\Group44_BlockTacti
 
 Press **Enter**.
 
-**Expected:** The prompt changes to show the folder path.
-
 ---
 
-## Step 3: Compile the Game
+### Step 3: Compile the Game
 
 Type this command (copy and paste):
 ```powershell
@@ -33,11 +55,11 @@ g++ -std=c++17 -Wall -Wextra -o blocktactics main.cpp map.cpp player.cpp file_io
 
 Press **Enter**.
 
-**Expected:** No output means success. If you see errors, check that g++ is installed.
+**Expected:** No output means success.
 
 ---
 
-## Step 4: Run the Game
+### Step 4: Run the Game
 
 Type this command:
 ```powershell
@@ -48,99 +70,12 @@ Press **Enter**.
 
 ---
 
-## Step 5: Welcome Screen
+## Quick Copy-Paste (All Commands)
 
-**You will see:**
-```
-  ╔══════════════════════════════════════════╗
-  ║                                          ║
-  ║         BLOCK TACTICS                    ║
-  ║                                          ║
-  ║      A Sokoban-Style Puzzle Game         ║
-  ║                                          ║
-  ║         COMP2113 / ENGG1340              ║
-  ║            Group 44                      ║
-  ║                                          ║
-  ╚══════════════════════════════════════════╝
-
-  Press any key to continue...
-```
-
-**Action:** Press any key to continue.
-
----
-
-## Step 6: Enter Username
-
-**You will see:**
-```
-  ═══════════════ LOGIN ═══════════════
-
-  Enter your username:
-```
-
-**Action:** Type your name (e.g., `player1`) and press **Enter**.
-
----
-
-## Step 7: Main Menu
-
-**You will see:**
-```
-  ═══════════════ MAIN MENU ═══════════════
-
-  [1] New Game
-  [2] Continue (from saved progress)
-  [3] View Controls
-  [4] View Progress
-  [5] Toggle Colors
-  [Q] Quit
-
-  Enter your choice:
-```
-
-**Action:** Press `1` for New Game.
-
----
-
-## Step 8: Select Difficulty
-
-**You will see:**
-```
-  ═══════════ SELECT DIFFICULTY ═══════════
-
-  [1] Easy   - 3 boxes, no obstacles
-  [2] Medium - 5 boxes, 3-5 obstacles
-  [3] Hard   - 7 boxes, 6-10 obstacles
-  [B] Back to menu
-
-  Enter your choice:
-```
-
-**Action:** Press `1` for Easy (recommended for first time).
-
----
-
-## Step 9: Play the Game!
-
-**You will see the game board:**
-```
-  ╔════════════════════════════════════════╗
-  ║  Difficulty: Easy | Steps: 0 | 0/3 | U:inf  ║
-  ╚════════════════════════════════════════╝
-
-  ##########
-  #        #
-  #  @     #
-  #    $   #
-  #      ^ #
-  #  $     #
-  #  ^  $  #
-  #       ^#
-  #        #
-  ##########
-
-  [W/A/S/D] Move | [R] Restart | [U] Undo | [H] Help | [Q] Quit
+```powershell
+cd "d:\港大教材\y2\comp 2113\Group44_BlockTactics_VS code\Group44_BlockTactics\4\6 Skelenton(Cc)"
+g++ -std=c++17 -Wall -Wextra -o blocktactics main.cpp map.cpp player.cpp file_io.cpp
+.\blocktactics.exe
 ```
 
 ---
@@ -162,123 +97,28 @@ Press **Enter**.
 
 ## Game Symbols
 
-| Symbol | Meaning | Color |
-|--------|---------|-------|
-| `@` | You (the player) | Yellow |
-| `$` | Box (push these) | Red |
-| `^` | Target (push boxes here) | Green |
-| `*` | Box on Target (success!) | Bright Green |
-| `#` | Wall (cannot pass) | Gray |
-| `.` | Obstacle (cannot pass) | Dark Gray |
+| Symbol | Meaning |
+|--------|---------|
+| `@` | Player (you) |
+| `$` | Box (push these) |
+| `^` | Target (push boxes here) |
+| `*` | Box on Target (success!) |
+| `#` | Wall |
+| `.` | Obstacle |
 
 ---
 
-## How to Win
+## Goal
 
-1. **Goal:** Push all boxes (`$`) onto all targets (`^`)
-2. When a box is on a target, it shows as `*`
-3. When ALL targets have boxes, you win! 🎉
-
----
-
-## Win Screen
-
-When you complete a level, you will see:
-```
-  ╔══════════════════════════════════════════╗
-  ║                                          ║
-  ║      CONGRATULATIONS!                    ║
-  ║                                          ║
-  ║         Level Complete!                  ║
-  ║                                          ║
-  ╚══════════════════════════════════════════╝
-
-  Steps taken: XX
-
-  [N] Next Level
-  [R] Replay Same Level
-  [M] Return to Menu
-
-  Enter your choice:
-```
-
----
-
-## Tips
-
-- **Plan ahead** - Think before you push
-- **Avoid corners** - Boxes stuck in corners cannot be moved
-- **Use Undo (U)** - Made a mistake? Press U to go back (shows remaining undos)
-- **Restart (R)** - Completely stuck? Press R to try again
-
----
-
-## Quick Start Commands (Copy All)
-
-```powershell
-cd "d:\港大教材\y2\comp 2113\Group44_BlockTactics_VS code\Group44_BlockTactics\4\6 Skelenton(Cc)"
-g++ -std=c++17 -Wall -Wextra -o blocktactics main.cpp map.cpp player.cpp file_io.cpp
-.\blocktactics.exe
-```
+Push all boxes (`$`) onto all targets (`^`). When complete, you win!
 
 ---
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
+| Error | Solution |
+|-------|----------|
+| `termios.h: No such file` | Apply the cross-platform fix (already done) |
 | `g++ not found` | Install MinGW and add to PATH |
 | `cd` fails | Make sure path is in quotes |
-| Compilation errors | Check all source files exist |
-| Colors not showing | Try Windows Terminal (recommended) |
-| `termios.h: No such file` | Fixed! See "Cross-Platform Fix" below |
-
----
-
-## Cross-Platform Fix (Important!)
-
-The original code used **Linux-only headers** (`termios.h`, `unistd.h`). This has been fixed to support both Windows and Linux.
-
-### What Was Fixed
-
-**File:** `player.cpp`
-
-**Problem:** Lines 3-4 had Linux-only includes:
-```cpp
-#include <termios.h>  // Linux only!
-#include <unistd.h>   // Linux only!
-```
-
-**Solution:** Added cross-platform preprocessor directives:
-```cpp
-#ifdef _WIN32
-    #include <conio.h>  // Windows: _getch()
-#else
-    #include <termios.h>
-    #include <unistd.h>
-#endif
-```
-
-The `getch()` function now uses:
-- **Windows:** `_getch()` from `<conio.h>`
-- **Linux:** `termios` to disable line buffering
-
----
-
-## File Structure
-
-```
-6 Skelenton(Cc)/
-├── main.cpp      # Main game logic and UI
-├── map.cpp       # Map generation and rendering
-├── map.h         # Map class header
-├── player.cpp    # Player movement and undo
-├── player.h      # Player class header
-├── file_io.cpp   # Save/load system
-├── file_io.h     # File I/O header
-└── Makefile      # Build configuration
-```
-
----
-
-## Have Fun! 🎮
+| Colors not showing | Use Windows Terminal instead of CMD |
