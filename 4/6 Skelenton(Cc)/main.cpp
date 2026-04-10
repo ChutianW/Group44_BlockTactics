@@ -144,7 +144,7 @@ void showControls() {
 // ============================================================
 // 显示游戏中状态栏（难度、步数、完成进度）
 // ============================================================
-void showGameStatus(Difficulty diff, int steps, int completed, int total) {
+void showGameStatus(Difficulty diff, int steps, int completed, int total, int undo_left) {
     std::cout << COLOR_CYAN;
     std::cout << "  ╔════════════════════════════════════════╗\n";
     std::cout << "  ║  ";
@@ -159,6 +159,16 @@ void showGameStatus(Difficulty diff, int steps, int completed, int total) {
 
     std::cout << " | Steps: " << COLOR_YELLOW << steps << COLOR_CYAN;
     std::cout << " | " << completed << "/" << total;
+
+    // 显示撤销次数
+    if (undo_left == -1) {
+        std::cout << " | U:" << COLOR_BRIGHT_GREEN << "inf" << COLOR_CYAN;
+    } else if (undo_left > 0) {
+        std::cout << " | U:" << COLOR_YELLOW << undo_left << COLOR_CYAN;
+    } else {
+        std::cout << " | U:" << COLOR_GRAY << "N/A" << COLOR_CYAN;
+    }
+
     std::cout << "  ║\n";
     std::cout << "  ╚════════════════════════════════════════╝\n";
     std::cout << COLOR_RESET;
@@ -297,8 +307,7 @@ void saveProgress(UserData &user, Difficulty diff, int steps, bool level_complet
 void startNewGame(Difficulty &diff,
                   std::vector<std::vector<char>> &grid,
                   std::vector<std::pair<int, int>> &target_positions,
-                  Player &player,
-                  UndoSystem &undo) {
+                  Player &player) {
     // 选择难度
     while (true) {
         showDifficultyMenu();
@@ -321,9 +330,6 @@ void startNewGame(Difficulty &diff,
     // 初始化玩家
     player.setPosition(start_row, start_col);
     player.resetSteps();
-
-    // 清空撤销历史
-    undo.clear();
 }
 
 // ============================================================
@@ -435,7 +441,8 @@ void runGameLoop(std::vector<std::vector<char>> grid,
         // 2. 显示状态栏
         int completed = countCompletedTargets(grid, target_positions);
         int total = getTargetCount(target_positions);
-        showGameStatus(diff, player.getSteps(), completed, total);
+        int undo_left = (undo.getMaxHistory() == 0) ? 0 : ((undo.getMaxHistory() > 20) ? -1 : (undo.getMaxHistory() - undo.getHistorySize()));
+        showGameStatus(diff, player.getSteps(), completed, total, undo_left);
 
         // 3. 打印地图
         printMap(grid, target_positions, player.row, player.col, true);
@@ -521,11 +528,19 @@ int main() {
                 std::vector<std::vector<char>> grid;
                 std::vector<std::pair<int, int>> target_positions;
                 Player player;
-                UndoSystem undo(100);
-                GameState initial_state;
 
-                startNewGame(diff, grid, target_positions, player, undo);
+                startNewGame(diff, grid, target_positions, player);
                 if (grid.empty()) continue;  // 用户返回了
+
+                int undo_capacity = 0;
+                switch (diff) {
+                    case EASY:   undo_capacity = 50;    break;
+                    case MEDIUM: undo_capacity = 5;     break;
+                    case HARD:   undo_capacity = 0;     break;
+                }
+                UndoSystem undo(undo_capacity);
+                undo.clear();
+                GameState initial_state;
 
                 initial_state = saveInitialState(grid, target_positions, player.row, player.col);
                 runGameLoop(grid, target_positions, player, diff, undo, initial_state, user);
@@ -539,7 +554,14 @@ int main() {
                 std::vector<std::vector<char>> grid;
                 std::vector<std::pair<int, int>> target_positions;
                 Player player;
-                UndoSystem undo(100);
+
+                int undo_capacity = 0;
+                switch (saved_diff) {
+                    case EASY:   undo_capacity = 50;    break;
+                    case MEDIUM: undo_capacity = 5;     break;
+                    case HARD:   undo_capacity = 0;     break;
+                }
+                UndoSystem undo(undo_capacity);
                 GameState initial_state;
 
                 int start_row = 1, start_col = 1;

@@ -42,6 +42,9 @@ UndoSystem::~UndoSystem() {
 
 // 保存当前状态到历史记录（用 new 分配动态内存）
 void UndoSystem::saveState(const std::vector<std::vector<char>> &grid, const Player &player) {
+    // 如果最大历史记录为0（Hard难度禁用undo），直接跳过
+    if (max_history == 0) return;
+
     UndoState *state = new UndoState(grid, player.row, player.col, player.getSteps());
 
     history.push(state);
@@ -63,11 +66,10 @@ bool UndoSystem::undo(std::vector<std::vector<char>> &grid, Player &player) {
     UndoState *state = history.top();
     history.pop();
 
-    // 恢复地图、玩家位置和步数
+    // 恢复地图和玩家位置（不恢复步数）
     grid = state->grid;
     player.row = state->player_row;
     player.col = state->player_col;
-    player.steps = state->step_count;
 
     // 释放动态内存
     delete state;
@@ -90,6 +92,10 @@ bool UndoSystem::canUndo() const {
 
 int UndoSystem::getHistorySize() const {
     return history.size();
+}
+
+int UndoSystem::getMaxHistory() const {
+    return max_history;
 }
 
 // ============================================================
@@ -245,6 +251,20 @@ bool movePlayer(Player &player, int direction,
         int box_row = new_row;
         int box_col = new_col;
         pushBox(box_row, box_col, direction, grid, target_positions);
+
+        // 恢复玩家旧位置（清除旧位置的@）
+        bool was_on_target = false;
+        for (const auto &pos : target_positions) {
+            if (pos.first == player.col && pos.second == player.row) {
+                was_on_target = true;
+                break;
+            }
+        }
+        if (was_on_target) {
+            grid[player.row][player.col] = SYMBOL_TARGET;
+        } else {
+            grid[player.row][player.col] = SYMBOL_EMPTY;
+        }
 
         // 玩家移动到箱子原来的位置
         grid[new_row][new_col] = SYMBOL_PLAYER;
