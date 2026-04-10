@@ -231,6 +231,37 @@ g++ -std=c++17 -Wall -Wextra -o blocktactics main.cpp map.cpp player.cpp file_io
 | `cd` fails | Make sure path is in quotes |
 | Compilation errors | Check all source files exist |
 | Colors not showing | Try Windows Terminal (recommended) |
+| `termios.h: No such file` | Fixed! See "Cross-Platform Fix" below |
+
+---
+
+## Cross-Platform Fix (Important!)
+
+The original code used **Linux-only headers** (`termios.h`, `unistd.h`). This has been fixed to support both Windows and Linux.
+
+### What Was Fixed
+
+**File:** `player.cpp`
+
+**Problem:** Lines 3-4 had Linux-only includes:
+```cpp
+#include <termios.h>  // Linux only!
+#include <unistd.h>   // Linux only!
+```
+
+**Solution:** Added cross-platform preprocessor directives:
+```cpp
+#ifdef _WIN32
+    #include <conio.h>  // Windows: _getch()
+#else
+    #include <termios.h>
+    #include <unistd.h>
+#endif
+```
+
+The `getch()` function now uses:
+- **Windows:** `_getch()` from `<conio.h>`
+- **Linux:** `termios` to disable line buffering
 
 ---
 
