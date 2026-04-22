@@ -76,7 +76,7 @@ bool placePlayer(std::vector<std::vector<char>> &grid, int &start_row, int &star
 bool placeBoxesAndTargets(std::vector<std::vector<char>> &grid,
                           std::vector<std::pair<int, int>> &target_positions, int count);
 bool placeObstacles(std::vector<std::vector<char>> &grid, int count);
-bool isCorner(int x, int y);
+bool isCorner(const std::vector<std::vector<char>> &grid, int x, int y);
 bool isValidBoxPosition(const std::vector<std::vector<char>> &grid, int x, int y);
 bool isValidTargetPosition(const std::vector<std::vector<char>> &grid, int x, int y);
 bool hasMinimumMobility(const std::vector<std::vector<char>> &grid, int x, int y);

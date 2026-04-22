@@ -104,11 +104,43 @@ void addBorderWalls(std::vector<std::vector<char>> &grid) {
 
 // ============================================================
 // Check if position is a corner (bad for boxes/targets)
+// A corner is: next to a wall AND next to a wall, OR
+//             next to an obstacle AND next to a wall, OR
+//             next to an obstacle AND next to an obstacle
 // ============================================================
-bool isCorner(int x, int y) {
+bool isCorner(const std::vector<std::vector<char>> &grid, int x, int y) {
+    // Map boundary corners
     if (x <= 1 || x >= MAP_COLS - 2 || y <= 1 || y >= MAP_ROWS - 2) {
         return true;
     }
+
+    // Check for corner against obstacles/walls
+    // A box is in a corner if two perpendicular adjacent cells are blocked
+    int dx[] = {0, 0, -1, 1};
+    int dy[] = {-1, 1, 0, 0};
+
+    for (int i = 0; i < 4; i++) {
+        int nx = x + dx[i];
+        int ny = y + dy[i];
+        if (nx < 0 || nx >= MAP_COLS || ny < 0 || ny >= MAP_ROWS) continue;
+
+        char cell = grid[ny][nx];
+        if (cell != SYMBOL_WALL && cell != SYMBOL_OBSTACLE) continue;
+
+        // Found first blocking cell, check perpendicular directions
+        for (int j = 0; j < 4; j++) {
+            if (j == i || j == (i ^ 1)) continue;  // Skip opposite direction
+            int nnx = x + dx[j];
+            int nny = y + dy[j];
+            if (nnx < 0 || nnx >= MAP_COLS || nny < 0 || nny >= MAP_ROWS) continue;
+
+            char cell2 = grid[nny][nnx];
+            if (cell2 == SYMBOL_WALL || cell2 == SYMBOL_OBSTACLE) {
+                return true;  // Corner detected
+            }
+        }
+    }
+
     return false;
 }
 
@@ -118,7 +150,7 @@ bool isCorner(int x, int y) {
 bool isValidBoxPosition(const std::vector<std::vector<char>> &grid, int x, int y) {
     if (x < 0 || x >= MAP_COLS || y < 0 || y >= MAP_ROWS) return false;
     if (grid[y][x] != SYMBOL_EMPTY) return false;
-    if (isCorner(x, y)) return false;
+    if (isCorner(grid, x, y)) return false;
     return true;
 }
 
@@ -128,13 +160,19 @@ bool isValidBoxPosition(const std::vector<std::vector<char>> &grid, int x, int y
 bool isValidTargetPosition(const std::vector<std::vector<char>> &grid, int x, int y) {
     if (x < 0 || x >= MAP_COLS || y < 0 || y >= MAP_ROWS) return false;
     if (grid[y][x] != SYMBOL_EMPTY) return false;
-    if (isCorner(x, y)) return false;
+    if (isCorner(grid, x, y)) return false;
     if (x == 1 || x == MAP_COLS - 2 || y == 1 || y == MAP_ROWS - 2) return false;
     return true;
 }
 
+// Check if cell is passable (can be walked through)
+static bool isPassable(char cell) {
+    return cell == SYMBOL_EMPTY || cell == SYMBOL_TARGET;
+}
+
 // ============================================================
 // Count adjacent free cells (for box mobility check)
+// Obstacles and walls are impassable
 // ============================================================
 static int countAdjacentFree(const std::vector<std::vector<char>> &grid, int x, int y) {
     int count = 0;
@@ -146,7 +184,7 @@ static int countAdjacentFree(const std::vector<std::vector<char>> &grid, int x, 
         int ny = y + dy[i];
         if (nx >= 0 && nx < MAP_COLS && ny >= 0 && ny < MAP_ROWS) {
             char cell = grid[ny][nx];
-            if (cell == SYMBOL_EMPTY || cell == SYMBOL_TARGET) {
+            if (isPassable(cell)) {
                 count++;
             }
         }
