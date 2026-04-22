@@ -2,18 +2,76 @@
 #include "player.h"
 #include "file_io.h"
 #include <iostream>
-#include <termios.h>
-#include <unistd.h>
 #include <iomanip>
 #include <ctime>
+
+#ifdef _WIN32
+#include <conio.h>
+#else
+#include <termios.h>
+#include <unistd.h>
+#endif
 
 // ===============================================================================
 // Renderer base class implementation
 // ===============================================================================
 
-Renderer::Renderer(bool color_enabled) : color_enabled(color_enabled) {}
+Renderer::Renderer(bool color_enabled, RenderMode render_mode, bool ansi_color_supported)
+    : color_enabled(color_enabled && ansi_color_supported),
+      ansi_color_supported(ansi_color_supported),
+      render_mode(render_mode) {}
 
 Renderer::~Renderer() {}
+
+const std::string &Renderer::on(const std::string &code) const {
+    static const std::string empty;
+    return color_enabled ? code : empty;
+}
+
+std::string Renderer::line(int width, char ascii_ch, const std::string &unicode_ch) const {
+    std::string token = (render_mode == RenderMode::UNICODE) ? unicode_ch : std::string(1, ascii_ch);
+    std::string out;
+    for (int i = 0; i < width; ++i) {
+        out += token;
+    }
+    return out;
+}
+
+std::string Renderer::boxTop(int width) const {
+    if (render_mode == RenderMode::UNICODE) {
+        return "  ╔" + line(width, '=', "═") + "╗";
+    }
+    return "  +" + line(width, '-', "-") + "+";
+}
+
+std::string Renderer::boxBottom(int width) const {
+    if (render_mode == RenderMode::UNICODE) {
+        return "  ╚" + line(width, '=', "═") + "╝";
+    }
+    return "  +" + line(width, '-', "-") + "+";
+}
+
+std::string Renderer::boxMiddle(int width) const {
+    return "  " + line(width, '=', "═");
+}
+
+std::string Renderer::boxEmpty(int width) const {
+    if (render_mode == RenderMode::UNICODE) {
+        return "  ║" + line(width, ' ', " ") + "║";
+    }
+    return "  |" + line(width, ' ', " ") + "|";
+}
+
+std::string Renderer::boxRow(const std::string &content, int width) const {
+    std::string row = content;
+    if (static_cast<int>(row.size()) < width) {
+        row += std::string(width - row.size(), ' ');
+    }
+    if (render_mode == RenderMode::UNICODE) {
+        return "  ║" + row + "║";
+    }
+    return "  |" + row + "|";
+}
 
 // Clear screen (Linux/Windows compatible)
 void Renderer::clearScreen() {
@@ -26,6 +84,9 @@ void Renderer::clearScreen() {
 
 // Get single char input
 char Renderer::getInput() {
+#ifdef _WIN32
+    return static_cast<char>(_getch());
+#else
     struct termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
@@ -34,32 +95,41 @@ char Renderer::getInput() {
     char ch = getchar();
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return ch;
+#endif
 }
 
 void Renderer::setColorEnabled(bool enabled) {
-    color_enabled = enabled;
+    color_enabled = enabled && ansi_color_supported;
 }
 
 bool Renderer::isColorEnabled() const {
     return color_enabled;
 }
 
+void Renderer::setRenderMode(RenderMode mode) {
+    render_mode = mode;
+}
+
+RenderMode Renderer::getRenderMode() const {
+    return render_mode;
+}
+
 // Welcome screen
 void Renderer::printWelcome() {
     clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
+    std::cout << on(COLOR_CYAN) << on(COLOR_BOLD);
     std::cout << "\n";
-    std::cout << "  ╔══════════════════════════════════════════╗\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ║         BLOCK TACTICS                    ║\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ║      A Sokoban-Style Puzzle Game         ║\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ║         COMP2113 / ENGG1340              ║\n";
-    std::cout << "  ║            Group 44                      ║\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ╚══════════════════════════════════════════╝\n";
-    std::cout << COLOR_RESET << "\n";
+    std::cout << boxTop(42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxRow("         BLOCK TACTICS                    ", 42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxRow("      A Sokoban-Style Puzzle Game         ", 42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxRow("         COMP2113 / ENGG1340              ", 42) << "\n";
+    std::cout << boxRow("            Group 44                      ", 42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxBottom(42) << "\n";
+    std::cout << on(COLOR_RESET) << "\n";
     std::cout << "  Press any key to continue...\n";
     getInput();
 }
@@ -67,9 +137,9 @@ void Renderer::printWelcome() {
 // Main menu
 void Renderer::printMenu() {
     clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
-    std::cout << "\n  ═══════════════ MAIN MENU ═══════════════\n\n";
-    std::cout << COLOR_RESET;
+    std::cout << on(COLOR_CYAN) << on(COLOR_BOLD);
+    std::cout << "\n  " << line(15, '=', "═") << " MAIN MENU " << line(15, '=', "═") << "\n\n";
+    std::cout << on(COLOR_RESET);
     std::cout << "  [1] New Game\n";
     std::cout << "  [2] Continue (from saved progress)\n";
     std::cout << "  [3] View Controls\n";
@@ -83,15 +153,15 @@ void Renderer::printMenu() {
 // Difficulty selection menu
 void Renderer::printDifficultyMenu() {
     clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
-    std::cout << "\n  ═══════════ SELECT DIFFICULTY ═══════════\n\n";
-    std::cout << COLOR_RESET;
+    std::cout << on(COLOR_CYAN) << on(COLOR_BOLD);
+    std::cout << "\n  " << line(11, '=', "═") << " SELECT DIFFICULTY " << line(11, '=', "═") << "\n\n";
+    std::cout << on(COLOR_RESET);
 
-    std::cout << "  [1] " << COLOR_GREEN << "Easy" << COLOR_RESET
+    std::cout << "  [1] " << on(COLOR_GREEN) << "Easy" << on(COLOR_RESET)
               << "   - 3 boxes, no obstacles\n";
-    std::cout << "  [2] " << COLOR_YELLOW << "Medium" << COLOR_RESET
+    std::cout << "  [2] " << on(COLOR_YELLOW) << "Medium" << on(COLOR_RESET)
               << " - 5 boxes, 3-5 obstacles\n";
-    std::cout << "  [3] " << COLOR_RED << "Hard" << COLOR_RESET
+    std::cout << "  [3] " << on(COLOR_RED) << "Hard" << on(COLOR_RESET)
               << "   - 7 boxes, 6-10 obstacles\n";
     std::cout << "  [B] Back to menu\n\n";
     std::cout << "  Enter your choice: ";
@@ -100,31 +170,31 @@ void Renderer::printDifficultyMenu() {
 // Controls display
 void Renderer::printControls() {
     clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
-    std::cout << "\n  ═══════════════ CONTROLS ═══════════════\n\n";
-    std::cout << COLOR_RESET;
+    std::cout << on(COLOR_CYAN) << on(COLOR_BOLD);
+    std::cout << "\n  " << line(14, '=', "═") << " CONTROLS " << line(14, '=', "═") << "\n\n";
+    std::cout << on(COLOR_RESET);
 
-    std::cout << "  " << COLOR_BOLD << "Movement:" << COLOR_RESET << "\n";
+    std::cout << "  " << on(COLOR_BOLD) << "Movement:" << on(COLOR_RESET) << "\n";
     std::cout << "    W - Move Up\n";
     std::cout << "    A - Move Left\n";
     std::cout << "    S - Move Down\n";
     std::cout << "    D - Move Right\n\n";
 
-    std::cout << "  " << COLOR_BOLD << "Actions:" << COLOR_RESET << "\n";
+    std::cout << "  " << on(COLOR_BOLD) << "Actions:" << on(COLOR_RESET) << "\n";
     std::cout << "    R - Restart Level\n";
     std::cout << "    U - Undo Last Move\n";
     std::cout << "    H - Show Help\n";
     std::cout << "    Q - Quit to Menu\n\n";
 
-    std::cout << "  " << COLOR_BOLD << "Symbols:" << COLOR_RESET << "\n";
-    std::cout << "    " << COLOR_YELLOW << "@" << COLOR_RESET << " - Player\n";
-    std::cout << "    " << COLOR_RED << "$" << COLOR_RESET << " - Box\n";
-    std::cout << "    " << COLOR_GREEN << "^" << COLOR_RESET << " - Target\n";
-    std::cout << "    " << COLOR_BRIGHT_GREEN << "*" << COLOR_RESET << " - Box on Target\n";
-    std::cout << "    " << COLOR_GRAY << "#" << COLOR_RESET << " - Wall\n";
-    std::cout << "    " << COLOR_DARK_GRAY << "%" << COLOR_RESET << " - Obstacle\n\n";
+    std::cout << "  " << on(COLOR_BOLD) << "Symbols:" << on(COLOR_RESET) << "\n";
+    std::cout << "    " << on(COLOR_YELLOW) << "@" << on(COLOR_RESET) << " - Player\n";
+    std::cout << "    " << on(COLOR_RED) << "$" << on(COLOR_RESET) << " - Box\n";
+    std::cout << "    " << on(COLOR_GREEN) << "^" << on(COLOR_RESET) << " - Target\n";
+    std::cout << "    " << on(COLOR_BRIGHT_GREEN) << "*" << on(COLOR_RESET) << " - Box on Target\n";
+    std::cout << "    " << on(COLOR_GRAY) << "#" << on(COLOR_RESET) << " - Wall\n";
+    std::cout << "    " << on(COLOR_DARK_GRAY) << "%" << on(COLOR_RESET) << " - Obstacle\n\n";
 
-    std::cout << "  " << COLOR_BOLD << "Goal:" << COLOR_RESET << "\n";
+    std::cout << "  " << on(COLOR_BOLD) << "Goal:" << on(COLOR_RESET) << "\n";
     std::cout << "    Push all boxes ($) onto targets (^)\n";
     std::cout << "    When a box is on a target, it shows as (*)\n\n";
 
@@ -135,19 +205,19 @@ void Renderer::printControls() {
 // User progress display
 void Renderer::printUserProgress(const UserData &user, bool logged_in) {
     clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
-    std::cout << "\n  ═══════════════ PROGRESS ═══════════════\n\n";
-    std::cout << COLOR_RESET;
+    std::cout << on(COLOR_CYAN) << on(COLOR_BOLD);
+    std::cout << "\n  " << line(14, '=', "═") << " RECORD " << line(14, '=', "═") << "\n\n";
+    std::cout << on(COLOR_RESET);
 
     if (!logged_in) {
         std::cout << "  No user logged in.\n\n";
     } else {
-        std::cout << "  User: " << COLOR_YELLOW << user.username << COLOR_RESET << "\n\n";
+        std::cout << "  User: " << on(COLOR_YELLOW) << user.username << on(COLOR_RESET) << "\n\n";
         std::cout << "  Highest Level: ";
         switch (user.highest_level) {
-            case 1: std::cout << COLOR_GREEN << "Easy" << COLOR_RESET; break;
-            case 2: std::cout << COLOR_YELLOW << "Medium" << COLOR_RESET; break;
-            case 3: std::cout << COLOR_RED << "Hard" << COLOR_RESET; break;
+            case 1: std::cout << on(COLOR_GREEN) << "Easy" << on(COLOR_RESET); break;
+            case 2: std::cout << on(COLOR_YELLOW) << "Medium" << on(COLOR_RESET); break;
+            case 3: std::cout << on(COLOR_RED) << "Hard" << on(COLOR_RESET); break;
         }
         std::cout << "\n\n";
 
@@ -167,9 +237,9 @@ void Renderer::printUserProgress(const UserData &user, bool logged_in) {
 // Leaderboard display
 void Renderer::printLeaderboard(const std::vector<LeaderboardEntry> &entries) {
     clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
-    std::cout << "\n  ═══════════════ LEADERBOARD ═══════════════\n\n";
-    std::cout << COLOR_RESET;
+    std::cout << on(COLOR_CYAN) << on(COLOR_BOLD);
+    std::cout << "\n  " << line(14, '=', "═") << " LEADERBOARD " << line(14, '=', "═") << "\n\n";
+    std::cout << on(COLOR_RESET);
 
     if (entries.empty()) {
         std::cout << "  No records yet. Start playing to set records!\n";
@@ -178,19 +248,21 @@ void Renderer::printLeaderboard(const std::vector<LeaderboardEntry> &entries) {
         const std::string COLOR_SILVER = "\033[37m";
         const std::string COLOR_ORANGE = "\033[38;5;208m";
 
-        std::cout << "  " << COLOR_BOLD;
+        std::cout << "  " << on(COLOR_BOLD);
         std::cout << "Rank  Username     Difficulty  Steps  Undos  Created\n";
-        std::cout << COLOR_RESET;
-        std::cout << "  ──────────────────────────────────────────────\n";
+        std::cout << on(COLOR_RESET);
+        std::cout << "  " << line(46, '-', "─") << "\n";
 
         for (size_t i = 0; i < entries.size(); i++) {
             const auto &e = entries[i];
 
             std::string color;
-            if (i == 0) color = COLOR_GOLD;
-            else if (i == 1) color = COLOR_SILVER;
-            else if (i == 2) color = COLOR_ORANGE;
-            else color = COLOR_RESET;
+            if (color_enabled) {
+                if (i == 0) color = COLOR_GOLD;
+                else if (i == 1) color = COLOR_SILVER;
+                else if (i == 2) color = COLOR_ORANGE;
+                else color = COLOR_RESET;
+            }
 
             std::string diff_name;
             switch (e.difficulty) {
@@ -209,7 +281,7 @@ void Renderer::printLeaderboard(const std::vector<LeaderboardEntry> &entries) {
             std::cout << diff_name;
             for (size_t s = diff_name.length(); s < 8; s++) std::cout << " ";
             std::cout << e.best_steps << "    " << e.total_undos << "    " << created_str << "\n";
-            std::cout << COLOR_RESET;
+            std::cout << on(COLOR_RESET);
         }
     }
 
@@ -220,29 +292,37 @@ void Renderer::printLeaderboard(const std::vector<LeaderboardEntry> &entries) {
 // Game status bar
 void Renderer::printGameStatus(Difficulty diff, int steps, int completed, int total,
                                 int undo_left, int undo_max) {
-    std::cout << COLOR_CYAN;
-    std::cout << "  ╔════════════════════════════════════════╗\n";
-    std::cout << "  ║  ";
+    std::cout << on(COLOR_CYAN);
+    std::cout << boxTop(40) << "\n";
+    if (render_mode == RenderMode::UNICODE) {
+        std::cout << "  ║  ";
+    } else {
+        std::cout << "  |  ";
+    }
 
     std::cout << "Difficulty: ";
     switch (diff) {
-        case EASY:   std::cout << COLOR_GREEN << "Easy  " << COLOR_CYAN; break;
-        case MEDIUM: std::cout << COLOR_YELLOW << "Medium" << COLOR_CYAN; break;
-        case HARD:   std::cout << COLOR_RED << "Hard  " << COLOR_CYAN; break;
+        case EASY:   std::cout << on(COLOR_GREEN) << "Easy  " << on(COLOR_CYAN); break;
+        case MEDIUM: std::cout << on(COLOR_YELLOW) << "Medium" << on(COLOR_CYAN); break;
+        case HARD:   std::cout << on(COLOR_RED) << "Hard  " << on(COLOR_CYAN); break;
     }
 
-    std::cout << " | Steps: " << COLOR_YELLOW << steps << COLOR_CYAN;
+    std::cout << " | Steps: " << on(COLOR_YELLOW) << steps << on(COLOR_CYAN);
     std::cout << " | " << completed << "/" << total;
 
     if (undo_max == 0) {
-        std::cout << " | U:" << COLOR_GRAY << "N/A" << COLOR_CYAN;
+        std::cout << " | U:" << on(COLOR_GRAY) << "N/A" << on(COLOR_CYAN);
     } else {
-        std::cout << " | U:" << COLOR_YELLOW << undo_left << COLOR_CYAN << "/" << COLOR_YELLOW << undo_max << COLOR_CYAN;
+        std::cout << " | U:" << on(COLOR_YELLOW) << undo_left << on(COLOR_CYAN) << "/" << on(COLOR_YELLOW) << undo_max << on(COLOR_CYAN);
     }
 
-    std::cout << "  ║\n";
-    std::cout << "  ╚════════════════════════════════════════╝\n";
-    std::cout << COLOR_RESET;
+    if (render_mode == RenderMode::UNICODE) {
+        std::cout << "  ║\n";
+    } else {
+        std::cout << "  |\n";
+    }
+    std::cout << boxBottom(40) << "\n";
+    std::cout << on(COLOR_RESET);
 }
 
 // Get cell type (polymorphism helper)
@@ -289,22 +369,22 @@ void Renderer::printCell(char cell, bool is_player_position,
 
     switch (type) {
         case CellType::PLAYER:
-            std::cout << COLOR_YELLOW << COLOR_BOLD << cell << COLOR_RESET;
+            std::cout << on(COLOR_YELLOW) << on(COLOR_BOLD) << cell << on(COLOR_RESET);
             break;
         case CellType::BOX:
-            std::cout << COLOR_RED << cell << COLOR_RESET;
+            std::cout << on(COLOR_RED) << cell << on(COLOR_RESET);
             break;
         case CellType::BOX_ON_TARGET:
-            std::cout << COLOR_BRIGHT_GREEN << COLOR_BOLD << cell << COLOR_RESET;
+            std::cout << on(COLOR_BRIGHT_GREEN) << on(COLOR_BOLD) << cell << on(COLOR_RESET);
             break;
         case CellType::TARGET:
-            std::cout << COLOR_GREEN << cell << COLOR_RESET;
+            std::cout << on(COLOR_GREEN) << cell << on(COLOR_RESET);
             break;
         case CellType::WALL:
-            std::cout << COLOR_GRAY << cell << COLOR_RESET;
+            std::cout << on(COLOR_GRAY) << cell << on(COLOR_RESET);
             break;
         case CellType::OBSTACLE:
-            std::cout << COLOR_DARK_GRAY << cell << COLOR_RESET;
+            std::cout << on(COLOR_DARK_GRAY) << cell << on(COLOR_RESET);
             break;
         case CellType::EMPTY:
         default:
@@ -333,33 +413,33 @@ void Renderer::printMap(const std::vector<std::vector<char>> &grid,
 // Quick help
 void Renderer::printHelp() {
     std::cout << "\n";
-    std::cout << COLOR_CYAN;
-    std::cout << "  ═══════════════ QUICK HELP ═══════════════\n";
-    std::cout << COLOR_RESET;
+    std::cout << on(COLOR_CYAN);
+    std::cout << "  " << line(13, '=', "═") << " QUICK HELP " << line(13, '=', "═") << "\n";
+    std::cout << on(COLOR_RESET);
     std::cout << "  W/A/S/D = Move | R = Restart | U = Undo\n";
     std::cout << "  Q = Quit to Menu | H = This help\n";
-    std::cout << "  Goal: Push all " << COLOR_RED << "$" << COLOR_RESET
-              << " onto " << COLOR_GREEN << "^" << COLOR_RESET << "\n";
-    std::cout << COLOR_CYAN;
-    std::cout << "  ═══════════════════════════════════════════\n";
-    std::cout << COLOR_RESET;
+    std::cout << "  Goal: Push all " << on(COLOR_RED) << "$" << on(COLOR_RESET)
+              << " onto " << on(COLOR_GREEN) << "^" << on(COLOR_RESET) << "\n";
+    std::cout << on(COLOR_CYAN);
+    std::cout << "  " << line(39, '=', "═") << "\n";
+    std::cout << on(COLOR_RESET);
 }
 
 // Win screen
 void Renderer::printWinScreen(int steps, const UserData &user, Difficulty diff) {
     clearScreen();
-    std::cout << COLOR_BRIGHT_GREEN << COLOR_BOLD;
+    std::cout << on(COLOR_BRIGHT_GREEN) << on(COLOR_BOLD);
     std::cout << "\n";
-    std::cout << "  ╔══════════════════════════════════════════╗\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ║      CONGRATULATIONS!                    ║\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ║         Level Complete!                  ║\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ╚══════════════════════════════════════════╝\n";
-    std::cout << COLOR_RESET << "\n";
+    std::cout << boxTop(42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxRow("      CONGRATULATIONS!                    ", 42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxRow("         Level Complete!                  ", 42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxBottom(42) << "\n";
+    std::cout << on(COLOR_RESET) << "\n";
 
-    std::cout << "  Steps taken: " << COLOR_YELLOW << steps << COLOR_RESET << "\n\n";
+    std::cout << "  Steps taken: " << on(COLOR_YELLOW) << steps << on(COLOR_RESET) << "\n\n";
 
     int current_best = 0;
     switch (diff) {
@@ -369,7 +449,7 @@ void Renderer::printWinScreen(int steps, const UserData &user, Difficulty diff) 
     }
 
     if (current_best == 0 || steps < current_best) {
-        std::cout << "  " << COLOR_BRIGHT_GREEN << "NEW BEST SCORE!" << COLOR_RESET << "\n\n";
+        std::cout << "  " << on(COLOR_BRIGHT_GREEN) << "NEW BEST SCORE!" << on(COLOR_RESET) << "\n\n";
     }
 
     std::cout << "  [N] Next Level\n";
@@ -383,7 +463,7 @@ void Renderer::printWinScreen(int steps, const UserData &user, Difficulty diff) 
 // ===============================================================================
 
 RendererWithEffects::RendererWithEffects(bool color_enabled)
-    : Renderer(color_enabled), celebration_frames(5) {}
+    : Renderer(color_enabled, RenderMode::ASCII, true), celebration_frames(5) {}
 
 RendererWithEffects::~RendererWithEffects() {}
 
@@ -395,7 +475,9 @@ void RendererWithEffects::printWinScreen(int steps, const UserData &user, Diffic
 
 // Celebration animation
 void RendererWithEffects::printCelebration() {
-    std::cout << COLOR_YELLOW;
+    if (isColorEnabled()) {
+        std::cout << COLOR_YELLOW;
+    }
     for (int i = 0; i < celebration_frames; i++) {
         std::cout << "  *";
         for (int j = 0; j < i; j++) std::cout << "  ";
@@ -405,6 +487,8 @@ void RendererWithEffects::printCelebration() {
         for (int j = 0; j <= i; j++) std::cout << "* ";
         std::cout << "\n";
     }
-    std::cout << COLOR_RESET;
+    if (isColorEnabled()) {
+        std::cout << COLOR_RESET;
+    }
     std::cout << "\n  Press any key to continue...\n";
 }

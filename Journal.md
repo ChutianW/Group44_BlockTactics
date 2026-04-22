@@ -43,3 +43,31 @@
 
 
 
+## Apr 22 (Windows Build Fix)
+- Fixed Windows compile failure (`termios.h: No such file or directory`):
+  - Updated `player.cpp` to use `_getch()` on Windows and `termios` on Linux/macOS
+  - Updated `renderer.cpp` to use `_getch()` on Windows and `termios` on Linux/macOS
+- Added `windows` target in `Game Code/Makefile` to build `blocktactics.exe`
+- Updated `PlayingGuideline.md` with Windows-specific compile/run instructions:
+  - `make windows` flow
+  - fallback direct `g++ ... -o blocktactics.exe ...` command when `make` is unavailable
+  - troubleshooting note for `termios.h` error on Windows
+
+## Apr 22 (Windows Terminal Rendering Stability Fix)
+- Fixed mojibake/garbled terminal output risk by making Windows rendering conservative by default.
+- Added `Game Code/terminal.h` and `Game Code/terminal.cpp`:
+  - Detect ANSI color support safely
+  - Default to ASCII render mode on Windows unless Unicode confidence is explicit
+  - Keep Linux/macOS behavior unchanged
+- Updated renderer integration:
+  - `Renderer` now uses terminal capability config (`color + render mode + ANSI support`)
+  - UI boxes/headers/status now render via mode-aware helpers (ASCII/Unicode)
+  - Color output is gated to avoid leaking raw escape codes when unsupported
+- Updated `main.cpp`:
+  - Initializes renderer using detected terminal config
+  - Login/exit banner now respects ASCII/Unicode mode and safe color state
+- Updated `PlayingGuideline.md`:
+  - Windows compile command includes `terminal.cpp`
+  - Added PowerShell-safe run command (`.\\blocktactics.exe`)
+  - Added forced ASCII fallback command (`$env:BLOCKTACTICS_FORCE_ASCII="1"; .\\blocktactics.exe`)
+

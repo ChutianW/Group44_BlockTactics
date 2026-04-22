@@ -39,7 +39,13 @@ make
 ### Windows (Command Prompt)
 ```cmd
 cd "Game Code"
-g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp
+make windows
+```
+
+If `make` is not available on Windows:
+
+```cmd
+g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp terminal.cpp
 ```
 
 Press **Enter**.
@@ -58,6 +64,17 @@ Press **Enter**.
 ### Windows
 ```cmd
 blocktactics.exe
+```
+
+### Windows (PowerShell)
+```powershell
+.\blocktactics.exe
+```
+
+If your terminal still renders incorrectly, force ASCII mode:
+
+```powershell
+$env:BLOCKTACTICS_FORCE_ASCII="1"; .\blocktactics.exe
 ```
 
 Or double-click `blocktactics.exe` in File Explorer.
@@ -246,7 +263,15 @@ make
 ### Windows (Command Prompt)
 ```cmd
 cd C:\path\to\Group44_BlockTactics\Game Code
-g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp
+make windows
+blocktactics.exe
+```
+
+If `make` is not available:
+
+```cmd
+cd C:\path\to\Group44_BlockTactics\Game Code
+g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp terminal.cpp
 blocktactics.exe
 ```
 
@@ -259,6 +284,9 @@ blocktactics.exe
 | `g++ not found` | Install g++: `sudo apt install g++` (Linux) or check Xcode (macOS) or download MinGW (Windows) |
 | `cd` fails | Make sure path is correct with `ls` (macOS/Linux) or `dir` (Windows) |
 | Compilation errors | Check all source files exist with `ls` (macOS/Linux) or `dir` (Windows) |
+| `termios.h: No such file or directory` on Windows | Pull latest code and rebuild. Windows compatibility has been added to input handling (`player.cpp` and `renderer.cpp`) |
+| `blocktactics.exe` not recognized in PowerShell | Use `./blocktactics.exe` or `.\\blocktactics.exe` |
+| Garbled box-drawing/mojibake on Windows | Use ASCII fallback: `$env:BLOCKTACTICS_FORCE_ASCII="1"; .\\blocktactics.exe` |
 | Colors not showing | Use a modern terminal (iTerm2 on macOS, GNOME Terminal on Linux, Windows Terminal) |
 | Game seems stuck | Press `Q` to quit and restart |
 | `make` not recognized (Windows) | Use the direct g++ command shown in Step 3 instead of `make` |

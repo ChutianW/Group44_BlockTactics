@@ -1,7 +1,5 @@
 #include "player.h"
 #include <iostream>
-#include <termios.h>
-#include <unistd.h>
 
 // ============================================================
 // Player struct member functions
@@ -272,20 +270,6 @@ bool movePlayer(Player &player, int direction,
 
     player.incrementSteps();
     return true;
-}
-
-// ============================================================
-// Linux: read single char without Enter (termios)
-// ============================================================
-char getch() {
-    struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    char ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    return ch;
 }
 
 // ============================================================

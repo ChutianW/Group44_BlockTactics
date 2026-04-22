@@ -8,6 +8,7 @@
 #include "file_io.h"
 #include "renderer.h"
 #include "game.h"
+#include "terminal.h"
 
 // ===============================================================================
 // Windows UTF-8 initialization
@@ -29,8 +30,13 @@ int main() {
     // Initialize random seed
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    // Create renderer (colors enabled by default)
-    Renderer renderer(true);
+    // Terminal capability detection (conservative on Windows)
+    TerminalConfig term_cfg = detectTerminalConfig();
+
+    // Create renderer with safe defaults
+    Renderer renderer(term_cfg.color_enabled_by_default,
+                      term_cfg.default_render_mode,
+                      term_cfg.ansi_color_supported);
 
     // Show welcome screen
     renderer.printWelcome();
@@ -40,18 +46,36 @@ int main() {
     std::string username;
     {
         // Login logic
-        std::cout << "\n  ═══════════════ LOGIN ═══════════════\n\n";
+        if (renderer.isColorEnabled()) {
+            std::cout << COLOR_CYAN << COLOR_BOLD;
+        }
+        if (renderer.getRenderMode() == RenderMode::UNICODE) {
+            std::cout << "\n  ═══════════════ LOGIN ═══════════════\n\n";
+        } else {
+            std::cout << "\n  =============== LOGIN ===============\n\n";
+        }
+        if (renderer.isColorEnabled()) {
+            std::cout << COLOR_RESET;
+        }
         std::cout << "  Enter your username: ";
         std::cin >> username;
         std::cin.ignore();
 
         if (loadUserData(username, user)) {
-            std::cout << "\n  Welcome back, " << COLOR_YELLOW << username << COLOR_RESET << "!\n";
+            if (renderer.isColorEnabled()) {
+                std::cout << "\n  Welcome back, " << COLOR_YELLOW << username << COLOR_RESET << "!\n";
+            } else {
+                std::cout << "\n  Welcome back, " << username << "!\n";
+            }
             std::cout << "  Your progress has been loaded.\n";
         } else {
             user = createNewUser(username);
             saveUserData(user);
-            std::cout << "\n  New user created: " << COLOR_YELLOW << username << COLOR_RESET << "\n";
+            if (renderer.isColorEnabled()) {
+                std::cout << "\n  New user created: " << COLOR_YELLOW << username << COLOR_RESET << "\n";
+            } else {
+                std::cout << "\n  New user created: " << username << "\n";
+            }
             std::cout << "  Starting from Easy difficulty.\n";
         }
         std::cout << "\n  Press any key to continue...\n";
@@ -159,11 +183,24 @@ int main() {
     saveUserData(user);
 
     renderer.clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
-    std::cout << "\n  ═══════════════════════════════════════════\n";
+    if (renderer.isColorEnabled()) {
+        std::cout << COLOR_CYAN << COLOR_BOLD;
+    }
+    if (renderer.getRenderMode() == RenderMode::UNICODE) {
+        std::cout << "\n  ═══════════════════════════════════════════\n";
+    } else {
+        std::cout << "\n  ===========================================\n";
+    }
     std::cout << "       Thanks for playing Block Tactics!\n";
-    std::cout << "  ═══════════════════════════════════════════\n";
-    std::cout << COLOR_RESET << "\n";
+    if (renderer.getRenderMode() == RenderMode::UNICODE) {
+        std::cout << "  ═══════════════════════════════════════════\n";
+    } else {
+        std::cout << "  ===========================================\n";
+    }
+    if (renderer.isColorEnabled()) {
+        std::cout << COLOR_RESET;
+    }
+    std::cout << "\n";
 
     return 0;
 }
