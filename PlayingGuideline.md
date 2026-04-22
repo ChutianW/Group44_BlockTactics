@@ -8,6 +8,7 @@
 
 - **macOS:** Open `Terminal` from Applications > Utilities
 - **Linux:** Press `Ctrl+Alt+T` or search "Terminal" in your launcher
+- **Windows:** Press `Win+R`, type `cmd`, and press **Enter** (or search "Command Prompt")
 
 ---
 
@@ -29,9 +30,16 @@ Press **Enter**.
 
 ## Step 3: Compile the Game
 
+### macOS / Linux
 ```bash
 cd "Game Code"
 make
+```
+
+### Windows (Command Prompt)
+```cmd
+cd "Game Code"
+g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp
 ```
 
 Press **Enter**.
@@ -42,15 +50,17 @@ Press **Enter**.
 
 ## Step 4: Run the Game
 
-```bash
-make run
-```
-
-Or directly:
-
+### macOS / Linux
 ```bash
 ./blocktactics
 ```
+
+### Windows
+```cmd
+blocktactics.exe
+```
+
+Or double-click `blocktactics.exe` in File Explorer.
 
 ---
 
@@ -179,6 +189,7 @@ Or directly:
 1. **Goal:** Push all boxes (`$`) onto all targets (`^`)
 2. When a box is on a target, it shows as `*`
 3. When ALL targets have boxes, you win!
+4. **Note:** Boxes on targets can still be pushed elsewhere if needed
 
 ---
 
@@ -186,9 +197,9 @@ Or directly:
 
 | Level | Boxes | Obstacles | Undo Limit |
 |-------|-------|-----------|------------|
-| Easy | 3 | 0 | Unlimited (50 moves) |
-| Medium | 5 | 3-5 | 5 moves |
-| Hard | 7 | 6-10 | Disabled |
+| Easy | 3 | 0 | 5 moves |
+| Medium | 5 | 3-5 | 3 moves |
+| Hard | 7 | 6-10 | 0 moves (Disabled) |
 
 ---
 
@@ -225,10 +236,18 @@ Press **[L]** from the Main Menu to view the leaderboard.
 
 ## Quick Start Commands (Copy All)
 
+### macOS / Linux
 ```bash
 cd /path/to/Group44_BlockTactics/Game\ Code
 make
 ./blocktactics
+```
+
+### Windows (Command Prompt)
+```cmd
+cd C:\path\to\Group44_BlockTactics\Game Code
+g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp
+blocktactics.exe
 ```
 
 ---
@@ -237,11 +256,12 @@ make
 
 | Problem | Solution |
 |---------|----------|
-| `g++ not found` | Install g++: `sudo apt install g++` (Linux) or check Xcode (macOS) |
-| `cd` fails | Make sure path is correct with `ls` |
-| Compilation errors | Check all source files exist with `ls` |
-| Colors not showing | Use a modern terminal (iTerm2 on macOS, GNOME Terminal on Linux) |
+| `g++ not found` | Install g++: `sudo apt install g++` (Linux) or check Xcode (macOS) or download MinGW (Windows) |
+| `cd` fails | Make sure path is correct with `ls` (macOS/Linux) or `dir` (Windows) |
+| Compilation errors | Check all source files exist with `ls` (macOS/Linux) or `dir` (Windows) |
+| Colors not showing | Use a modern terminal (iTerm2 on macOS, GNOME Terminal on Linux, Windows Terminal) |
 | Game seems stuck | Press `Q` to quit and restart |
+| `make` not recognized (Windows) | Use the direct g++ command shown in Step 3 instead of `make` |
 
 ---
 

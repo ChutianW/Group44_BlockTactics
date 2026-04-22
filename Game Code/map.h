@@ -4,62 +4,62 @@
 #include <vector>
 #include <string>
 
-// 地图行数和列数（10x10 网格）
+// Map dimensions (10x10 grid)
 const int MAP_ROWS = 10;
 const int MAP_COLS = 10;
 
-// 符号常量定义
-const char SYMBOL_WALL = '#';        // 墙壁
-const char SYMBOL_EMPTY = ' ';       // 空白格子
-const char SYMBOL_PLAYER = '@';      // 玩家
-const char SYMBOL_BOX = '$';         // 箱子
-const char SYMBOL_TARGET = '^';      // 目标点
-const char SYMBOL_OBSTACLE = '%';    // 障碍物
-const char SYMBOL_BOX_ON_TARGET = '*';  // 箱子已放置在目标点上
+// Symbol constants
+const char SYMBOL_WALL = '#';
+const char SYMBOL_EMPTY = ' ';
+const char SYMBOL_PLAYER = '@';
+const char SYMBOL_BOX = '$';
+const char SYMBOL_TARGET = '^';
+const char SYMBOL_OBSTACLE = '%';
+const char SYMBOL_BOX_ON_TARGET = '*';
 
-// ANSI 颜色代码
+// ANSI color codes
 const std::string COLOR_RESET = "\033[0m";
-const std::string COLOR_YELLOW = "\033[33m";       // 玩家
-const std::string COLOR_RED = "\033[31m";          // 箱子
-const std::string COLOR_GREEN = "\033[32m";        // 目标点
-const std::string COLOR_BRIGHT_GREEN = "\033[92m"; // 箱子在目标点上
-const std::string COLOR_GRAY = "\033[90m";         // 墙壁
-const std::string COLOR_DARK_GRAY = "\033[37m";    // 障碍物
-const std::string COLOR_CYAN = "\033[36m";         // UI 元素
+const std::string COLOR_YELLOW = "\033[33m";
+const std::string COLOR_RED = "\033[31m";
+const std::string COLOR_GREEN = "\033[32m";
+const std::string COLOR_BRIGHT_GREEN = "\033[92m";
+const std::string COLOR_GRAY = "\033[90m";
+const std::string COLOR_DARK_GRAY = "\033[37m";
+const std::string COLOR_CYAN = "\033[36m";
 const std::string COLOR_BOLD = "\033[1m";
 
-// 难度等级
+// Difficulty levels
 enum Difficulty {
     EASY = 1,
     MEDIUM = 2,
     HARD = 3
 };
 
-// 难度设置
+// Difficulty settings
 struct DifficultySettings {
     int num_boxes;
     int min_obstacles;
     int max_obstacles;
 };
 
-// 游戏状态结构体 —— 用于保存/回退游戏进度
+// Game state for save/restore
 struct GameState {
-    std::vector<std::vector<char>> grid;  // 当前地图网格
-    int player_row;                       // 玩家所在行
-    int player_col;                       // 玩家所在列
-    int step_count;                       // 已走步数
+    std::vector<std::vector<char>> grid;
+    int player_row;
+    int player_col;
+    int step_count;
 };
 
-// 地图配置结构体 —— 用于随机生成地图时传入参数
+// Map config for random generation
 struct MapConfig {
-    int box_count;      // 箱子数量
-    int obstacle_count; // 障碍物数量
+    int box_count;
+    int obstacle_count;
 };
 
-// —— 难度相关 ——
+// Difficulty
 DifficultySettings getDifficultySettings(Difficulty diff);
 
-// —— 地图创建 ——
+// Map creation
 void initSampleMap(std::vector<std::vector<char>> &grid,
                    int &start_row, int &start_col,
                    std::vector<std::pair<int, int>> &target_positions);
@@ -68,7 +68,7 @@ void generateRandomMap(std::vector<std::vector<char>> &grid,
                        std::vector<std::pair<int, int>> &target_positions,
                        Difficulty diff);
 
-// —— 随机地图生成辅助函数 ——
+// Random map generation helpers
 void clearMap(std::vector<std::vector<char>> &grid,
               std::vector<std::pair<int, int>> &target_positions);
 void addBorderWalls(std::vector<std::vector<char>> &grid);
@@ -81,17 +81,17 @@ bool isValidBoxPosition(const std::vector<std::vector<char>> &grid, int x, int y
 bool isValidTargetPosition(const std::vector<std::vector<char>> &grid, int x, int y);
 bool hasMinimumMobility(const std::vector<std::vector<char>> &grid, int x, int y);
 
-// —— 地图显示 ——
+// Map display
 void printMap(const std::vector<std::vector<char>> &grid,
               const std::vector<std::pair<int, int>> &target_positions,
               int player_row, int player_col, bool color_enabled = true);
 
-// —— 地图工具函数 ——
+// Map utilities
 bool isValidPosition(int row, int col);
 char getCell(const std::vector<std::vector<char>> &grid, int row, int col);
 void setCell(std::vector<std::vector<char>> &grid, int row, int col, char value);
 
-// —— 目标点管理 ——
+// Target management
 bool isTarget(const std::vector<std::pair<int, int>> &target_positions, int x, int y);
 int getTargetCount(const std::vector<std::pair<int, int>> &target_positions);
 int countCompletedTargets(const std::vector<std::vector<char>> &grid,
@@ -99,7 +99,7 @@ int countCompletedTargets(const std::vector<std::vector<char>> &grid,
 bool isBoxOnTarget(const std::vector<std::pair<int, int>> &target_positions,
                    int row, int col);
 
-// —— 重新开始辅助 ——
+// Restart helpers
 GameState saveInitialState(const std::vector<std::vector<char>> &grid,
                            const std::vector<std::pair<int, int>> &target_positions,
                            int player_row, int player_col);

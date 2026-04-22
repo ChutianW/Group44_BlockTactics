@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra
 TARGET = blocktactics
 
-SRCS = main.cpp map.cpp player.cpp file_io.cpp
+SRCS = main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(TARGET)

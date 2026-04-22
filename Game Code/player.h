@@ -4,11 +4,11 @@
 #include "map.h"
 #include <stack>
 
-// 玩家结构体 —— 记录玩家在地图上的位置和步数
+// Player struct - position and steps
 struct Player {
-    int row;   // 玩家所在行
-    int col;   // 玩家所在列
-    int steps; // 已走步数
+    int row;
+    int col;
+    int steps;
 
     Player();
     Player(int start_row, int start_col);
@@ -18,13 +18,13 @@ struct Player {
     void setPosition(int new_row, int new_col);
 };
 
-// 移动方向常量
-const int DIR_UP = 0;    // 上
-const int DIR_DOWN = 1;  // 下
-const int DIR_LEFT = 2;  // 左
-const int DIR_RIGHT = 3; // 右
+// Direction constants
+const int DIR_UP = 0;
+const int DIR_DOWN = 1;
+const int DIR_LEFT = 2;
+const int DIR_RIGHT = 3;
 
-// 撤销系统用的游戏状态快照（动态内存）
+// Undo state snapshot (dynamic memory)
 struct UndoState {
     std::vector<std::vector<char>> grid;
     int player_row;
@@ -36,15 +36,15 @@ struct UndoState {
         : grid(g), player_row(pr), player_col(pc), step_count(sc) {}
 };
 
-// 撤销系统类 —— 基于撤销次数限制 + 状态栈
-// 按难度：Easy=5, Medium=3, Hard=0
-// 每次撤销恢复位置但不回滚步数，且消耗一次撤销次数
+// Undo system - count limit + state stack
+// Limits: Easy=5, Medium=3, Hard=0
+// Undo restores position but not steps, consumes one undo
 class UndoSystem {
 private:
-    std::stack<UndoState *> history;  // 状态历史（用于恢复）
-    int undos_left;      // 剩余撤销次数
-    int max_undos;      // 最大撤销次数（由难度决定）
-    bool used_undo;      // 本关卡是否已使用过撤销
+    std::stack<UndoState *> history;
+    int undos_left;
+    int max_undos;
+    bool used_undo;
 
 public:
     UndoSystem(int max_size = 0);
@@ -57,42 +57,32 @@ public:
     int getUndosLeft() const;
     int getMaxUndos() const;
     bool hasUsedUndo() const;
-    void reset(int new_max_undos);                                // 重置撤销状态（新关卡）
+    void reset(int new_max_undos);
 };
 
-// —— 玩家操作 ——
-// 创建玩家对象（设置初始位置）
+// Player operations
 Player createPlayer(int row, int col);
-// 尝试移动玩家：若移动成功返回 true，失败返回 false
-// 该函数内部会处理碰撞检测和箱子推动
 bool movePlayer(Player &player, int direction,
                 std::vector<std::vector<char>> &grid,
                 const std::vector<std::pair<int, int>> &target_positions,
                 UndoSystem *undo = nullptr);
 
-// —— 箱子推动 ——
-// 检查指定方向的箱子是否可以被推动（目标格子不能是墙/障碍/另一个箱子）
-// 注意：如果箱子已经在目标点上，则不可推动
+// Box pushing
 bool canPushBox(int box_row, int box_col, int direction,
                 const std::vector<std::vector<char>> &grid,
                 const std::vector<std::pair<int, int>> &target_positions);
-// 推动箱子到指定方向，并更新地图格子
 void pushBox(int &box_row, int &box_col, int direction,
              std::vector<std::vector<char>> &grid,
              const std::vector<std::pair<int, int>> &target_positions);
 
-// —— 输入处理 ——
-// 从终端读取单个字符输入（Linux termios 实现，无需按 Enter）
+// Input handling
 char getch();
-// 将输入的字符（W/A/S/D 或方向键）解析为方向常量
 int parseDirection(char input);
 
-// —— 方向工具 ——
-// 获取方向的行列偏移量
+// Direction utilities
 void getDirectionOffset(int direction, int &drow, int &dcol);
 
-// —— 重置 ——
-// 将玩家位置重置到初始位置（用于重新开始关卡）
+// Reset
 void resetPlayer(Player &player, int start_row, int start_col);
 
 #endif // PLAYER_H

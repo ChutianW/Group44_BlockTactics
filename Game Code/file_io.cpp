@@ -6,7 +6,7 @@
 #include <ctime>
 
 // ============================================================
-// UserData 构造函数
+// UserData constructors
 // ============================================================
 
 UserData::UserData()
@@ -20,31 +20,21 @@ UserData::UserData(const std::string &name)
       total_undos_easy(0), total_undos_medium(0), total_undos_hard(0), created_at(time(nullptr)) {}
 
 // ============================================================
-// 创建新用户
+// Create new user
 // ============================================================
 UserData createNewUser(const std::string &username) {
     return UserData(username);
 }
 
 // ============================================================
-// 保存用户数据到文件
-//
-// 文件格式（每行一个用户）：
-//   用户名 最高难度 简单最佳步数 中等最佳步数 困难最佳步数 简单总撤销 中等总撤销 困难总撤销
-// 示例：
-//   Alice 3 45 78 120 12 8 0
-//   Bob 1 0 0 0 0 0 0
-//
-// 实现方式：
-//   1. 读取所有用户数据到 vector
-//   2. 更新或追加目标用户
-//   3. 全部写回文件
+// Save user data to file
+// Format (one user per line):
+//   username highest_level easy_steps medium_steps hard_steps easy_undos medium_undos hard_undos
+// Example: Alice 3 45 78 120 12 8 0
 // ============================================================
 bool saveUserData(const UserData &data, const std::string &filename) {
-    // 读取所有现有用户
     std::vector<UserData> all_users = loadAllUsers(filename);
 
-    // 更新已有用户或追加新用户
     bool found = false;
     for (auto &user : all_users) {
         if (user.username == data.username) {
@@ -58,7 +48,6 @@ bool saveUserData(const UserData &data, const std::string &filename) {
         all_users.push_back(data);
     }
 
-    // 写回文件
     std::ofstream file(filename);
     if (!file.is_open()) {
         return false;
@@ -81,8 +70,7 @@ bool saveUserData(const UserData &data, const std::string &filename) {
 }
 
 // ============================================================
-// 从文件加载用户数据
-// 逐行读取，匹配用户名后解析其进度信息
+// Load user data from file
 // ============================================================
 bool loadUserData(const std::string &username, UserData &data, const std::string &filename) {
     std::ifstream file(filename);
@@ -116,8 +104,7 @@ bool loadUserData(const std::string &username, UserData &data, const std::string
 }
 
 // ============================================================
-// 检查用户名是否已存在
-// 逐行读取文件，匹配用户名
+// Check if username exists
 // ============================================================
 bool userExists(const std::string &username, const std::string &filename) {
     std::ifstream file(filename);
@@ -141,7 +128,7 @@ bool userExists(const std::string &username, const std::string &filename) {
 }
 
 // ============================================================
-// 加载所有用户数据（用于 saveUserData 中的更新逻辑）
+// Load all users (used by saveUserData for update logic)
 // ============================================================
 std::vector<UserData> loadAllUsers(const std::string &filename) {
     std::vector<UserData> users;
@@ -177,8 +164,8 @@ std::vector<UserData> loadAllUsers(const std::string &filename) {
 }
 
 // ============================================================
-// 保存游戏状态（用于游戏中途存档）
-// 格式：关卡号 步数
+// Save game state (mid-game save)
+// Format: level steps
 // ============================================================
 bool saveGame(const std::string &filename, int level, int steps) {
     std::ofstream file(filename);
@@ -192,7 +179,7 @@ bool saveGame(const std::string &filename, int level, int steps) {
 }
 
 // ============================================================
-// 加载游戏状态（用于继续上次的进度）
+// Load game state (continue saved progress)
 // ============================================================
 bool loadGame(const std::string &filename, int &level, int &steps) {
     std::ifstream file(filename);
@@ -206,16 +193,14 @@ bool loadGame(const std::string &filename, int &level, int &steps) {
 }
 
 // ============================================================
-// 获取排行榜数据
-// 排序优先级：难度 > (步数 + undo次数)
-// 难度高在前，步数+undo少在前
+// Get leaderboard data
+// Sort: difficulty DESC, (steps+undos) ASC
 // ============================================================
 std::vector<LeaderboardEntry> getLeaderboard(const std::string &filename) {
     std::vector<LeaderboardEntry> entries;
     std::vector<UserData> users = loadAllUsers(filename);
 
     for (const auto &user : users) {
-        // 困难难度记录
         if (user.best_steps_hard > 0) {
             LeaderboardEntry e;
             e.username = user.username;
@@ -225,7 +210,6 @@ std::vector<LeaderboardEntry> getLeaderboard(const std::string &filename) {
             e.created_at = user.created_at;
             entries.push_back(e);
         }
-        // 中等难度记录
         if (user.best_steps_medium > 0) {
             LeaderboardEntry e;
             e.username = user.username;
@@ -235,7 +219,6 @@ std::vector<LeaderboardEntry> getLeaderboard(const std::string &filename) {
             e.created_at = user.created_at;
             entries.push_back(e);
         }
-        // 简单难度记录
         if (user.best_steps_easy > 0) {
             LeaderboardEntry e;
             e.username = user.username;
@@ -247,7 +230,6 @@ std::vector<LeaderboardEntry> getLeaderboard(const std::string &filename) {
         }
     }
 
-    // 排序：难度高在前，步数+undo少在前
     std::sort(entries.begin(), entries.end(), [](const LeaderboardEntry &a, const LeaderboardEntry &b) {
         if (a.difficulty != b.difficulty) return a.difficulty > b.difficulty;
         int score_a = a.best_steps + a.total_undos;
