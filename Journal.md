@@ -39,3 +39,10 @@
 
 
 
+
+## Apr 22 (Windows UTF-8 Fix)
+- Problem: Chinese characters in `cout` displayed as garbled text on Windows
+- Cause: Windows console uses GBK encoding by default, not UTF-8
+- Solution: Added `initWindowsUTF8()` function that runs `chcp 65001` on Windows
+- Modified `main.cpp` to call `initWindowsUTF8()` at startup
+- Updated `PlayingGuideline.md` with Windows-specific instructions

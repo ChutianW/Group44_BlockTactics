@@ -10,10 +10,22 @@
 #include "game.h"
 
 // ===============================================================================
+// Windows UTF-8 initialization
+// ===============================================================================
+void initWindowsUTF8() {
+    #if defined(_WIN32) || defined(WIN32)
+        system("chcp 65001 > nul");
+    #endif
+}
+
+// ===============================================================================
 // Main - Game entry point (delegates to Game and Renderer classes)
 // OOP: game logic in Game, display in Renderer
 // ===============================================================================
 int main() {
+    // Initialize Windows console to UTF-8
+    initWindowsUTF8();
+
     // Initialize random seed
     srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -66,7 +78,7 @@ int main() {
                     case '1': diff = EASY; break;
                     case '2': diff = MEDIUM; break;
                     case '3': diff = HARD; break;
-                    case 'b': continue;  // 返回菜单
+                    case 'b': continue;  // Return to menu
                 }
 
                 // Create game object (polymorphism: different class per difficulty)

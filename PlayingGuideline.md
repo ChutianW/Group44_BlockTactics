@@ -275,3 +275,51 @@ blocktactics.exe
 ---
 
 Enjoy playing Block Tactics!
+---
+
+## For Windows Users: Why Text Was Garbled
+
+### The Problem
+When you ran the game, you saw weird symbols instead of normal text:
+```
+鉉鉉鉉鉉鉉鉉鉉
+```
+This happened because Windows console and our code used different text formats.
+
+### Why This Happened
+- **Our game** sends text in **UTF-8** format (international standard)
+- **Windows console** expects **GBK** format by default
+- When UTF-8 meets GBK, characters get "mixed up" → garbled output
+
+### The Fix (Now Already In Code)
+We added automatic detection in the game code. When the game starts on Windows, it automatically switches to UTF-8 mode. You don't need to do anything manually anymore.
+
+### What We Changed
+In `main.cpp`, added this function at startup:
+```cpp
+void initWindowsUTF8() {
+    #if defined(_WIN32) || defined(WIN32)
+        system("chcp 65001 > nul");
+    #endif
+}
+```
+
+### What You Need To Do (Updated)
+Just compile and run normally:
+```cmd
+cd "Game Code"
+g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp
+blocktactics.exe
+```
+
+The game will automatically set up UTF-8 for you.
+
+### If You Still See Garbled Text
+Try using **Windows Terminal** instead of the old Command Prompt:
+1. Press `Win+I` to open Settings
+2. Search for "Windows Terminal" and install it
+3. Open Windows Terminal and run the game there
+
+---
+
+**This issue only affected Windows users. macOS and Linux were fine because their terminals use UTF-8 by default.**
