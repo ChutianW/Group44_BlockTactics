@@ -2,6 +2,8 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <iomanip>
+#include <cstring>
 #include "map.h"
 #include "player.h"
 #include "file_io.h"
@@ -81,6 +83,7 @@ void showMenu() {
     std::cout << "  [3] View Controls\n";
     std::cout << "  [4] View Progress\n";
     std::cout << "  [5] Toggle Colors\n";
+    std::cout << "  [L] Leaderboard\n";
     std::cout << "  [Q] Quit\n\n";
     std::cout << "  Enter your choice: ";
 }
@@ -131,7 +134,7 @@ void showControls() {
     std::cout << "    " << COLOR_GREEN << "^" << COLOR_RESET << " - Target\n";
     std::cout << "    " << COLOR_BRIGHT_GREEN << "*" << COLOR_RESET << " - Box on Target\n";
     std::cout << "    " << COLOR_GRAY << "#" << COLOR_RESET << " - Wall\n";
-    std::cout << "    " << COLOR_DARK_GRAY << "." << COLOR_RESET << " - Obstacle\n\n";
+    std::cout << "    " << COLOR_DARK_GRAY << "%" << COLOR_RESET << " - Obstacle\n\n";
 
     std::cout << "  " << COLOR_BOLD << "Goal:" << COLOR_RESET << "\n";
     std::cout << "    Push all boxes ($) onto targets (^)\n";
@@ -144,7 +147,7 @@ void showControls() {
 // ============================================================
 // 显示游戏中状态栏（难度、步数、完成进度）
 // ============================================================
-void showGameStatus(Difficulty diff, int steps, int completed, int total, int undo_left) {
+void showGameStatus(Difficulty diff, int steps, int completed, int total, int undo_left, int undo_max) {
     std::cout << COLOR_CYAN;
     std::cout << "  ╔════════════════════════════════════════╗\n";
     std::cout << "  ║  ";
@@ -160,13 +163,13 @@ void showGameStatus(Difficulty diff, int steps, int completed, int total, int un
     std::cout << " | Steps: " << COLOR_YELLOW << steps << COLOR_CYAN;
     std::cout << " | " << completed << "/" << total;
 
-    // 显示撤销次数
-    if (undo_left == -1) {
-        std::cout << " | U:" << COLOR_BRIGHT_GREEN << "inf" << COLOR_CYAN;
-    } else if (undo_left > 0) {
-        std::cout << " | U:" << COLOR_YELLOW << undo_left << COLOR_CYAN;
-    } else {
+    // 显示撤销次数 (Easy: 5, Medium: 3, Hard: 0)
+    if (undo_max == 0) {
+        // Hard难度：禁用撤销
         std::cout << " | U:" << COLOR_GRAY << "N/A" << COLOR_CYAN;
+    } else {
+        // Easy/Medium：显示 "X/Y" 格式
+        std::cout << " | U:" << COLOR_YELLOW << undo_left << COLOR_CYAN << "/" << COLOR_YELLOW << undo_max << COLOR_CYAN;
     }
 
     std::cout << "  ║\n";
@@ -202,6 +205,62 @@ void showUserProgress(const UserData &user, bool logged_in) {
                                    std::to_string(user.best_steps_medium) : "Not completed") << "\n";
         std::cout << "    Hard:   " << (user.best_steps_hard > 0 ?
                                    std::to_string(user.best_steps_hard) : "Not completed") << "\n";
+    }
+
+    std::cout << "\n  Press any key to continue...\n";
+    getch();
+}
+
+// ============================================================
+// 显示排行榜
+// ============================================================
+void showLeaderboard() {
+    auto leaderboard = getLeaderboard();
+    clearScreen();
+    std::cout << COLOR_CYAN << COLOR_BOLD;
+    std::cout << "\n  ═══════════════ LEADERBOARD ═══════════════\n\n";
+    std::cout << COLOR_RESET;
+
+    if (leaderboard.empty()) {
+        std::cout << "  No records yet. Start playing to set records!\n";
+    } else {
+        const std::string COLOR_GOLD = "\033[33m";
+        const std::string COLOR_SILVER = "\033[37m";
+        const std::string COLOR_ORANGE = "\033[38;5;208m";
+
+        std::cout << "  " << COLOR_BOLD;
+        std::cout << "Rank  Username     Difficulty  Steps  Undos  Created\n";
+        std::cout << COLOR_RESET;
+        std::cout << "  ──────────────────────────────────────────────\n";
+
+        for (size_t i = 0; i < leaderboard.size(); i++) {
+            const auto &e = leaderboard[i];
+
+            std::string color;
+            if (i == 0) color = COLOR_GOLD;
+            else if (i == 1) color = COLOR_SILVER;
+            else if (i == 2) color = COLOR_ORANGE;
+            else color = COLOR_RESET;
+
+            std::string diff_name;
+            switch (e.difficulty) {
+                case 1: diff_name = "Easy"; break;
+                case 2: diff_name = "Medium"; break;
+                case 3: diff_name = "Hard"; break;
+            }
+
+            char created_str[20];
+            struct tm *tm_info = localtime(&e.created_at);
+            strftime(created_str, sizeof(created_str), "%Y-%m-%d", tm_info);
+
+            std::cout << "  " << color;
+            std::cout << (i + 1) << ".  " << e.username;
+            for (size_t s = e.username.length(); s < 12; s++) std::cout << " ";
+            std::cout << diff_name;
+            for (size_t s = diff_name.length(); s < 8; s++) std::cout << " ";
+            std::cout << e.best_steps << "    " << e.total_undos << "    " << created_str << "\n";
+            std::cout << COLOR_RESET;
+        }
     }
 
     std::cout << "\n  Press any key to continue...\n";
@@ -270,25 +329,28 @@ bool checkWinCondition(const std::vector<std::vector<char>> &grid,
 }
 
 // ============================================================
-// 保存用户进度（更新最佳步数和最高难度）
+// 保存用户进度（更新最佳步数、最高难度和撤销次数）
 // ============================================================
-void saveProgress(UserData &user, Difficulty diff, int steps, bool level_complete) {
+void saveProgress(UserData &user, Difficulty diff, int steps, bool level_complete, int undos_used) {
     if (level_complete && steps > 0) {
         switch (diff) {
             case EASY:
                 if (user.best_steps_easy == 0 || steps < user.best_steps_easy) {
                     user.best_steps_easy = steps;
                 }
+                user.total_undos_easy += undos_used;
                 break;
             case MEDIUM:
                 if (user.best_steps_medium == 0 || steps < user.best_steps_medium) {
                     user.best_steps_medium = steps;
                 }
+                user.total_undos_medium += undos_used;
                 break;
             case HARD:
                 if (user.best_steps_hard == 0 || steps < user.best_steps_hard) {
                     user.best_steps_hard = steps;
                 }
+                user.total_undos_hard += undos_used;
                 break;
         }
     }
@@ -358,11 +420,19 @@ void nextLevel(Difficulty &diff,
         diff = static_cast<Difficulty>(static_cast<int>(diff) + 1);
     }
 
+    // 根据新难度设置撤销次数
+    int new_undo_capacity = 0;
+    switch (diff) {
+        case EASY:   new_undo_capacity = 5;   break;
+        case MEDIUM: new_undo_capacity = 3;   break;
+        case HARD:   new_undo_capacity = 0;   break;
+    }
+
     int start_row = 1, start_col = 1;
     generateRandomMap(grid, start_row, start_col, target_positions, diff);
     player.setPosition(start_row, start_col);
     player.resetSteps();
-    undo.clear();
+    undo.reset(new_undo_capacity);
 }
 
 // ============================================================
@@ -441,8 +511,9 @@ void runGameLoop(std::vector<std::vector<char>> grid,
         // 2. 显示状态栏
         int completed = countCompletedTargets(grid, target_positions);
         int total = getTargetCount(target_positions);
-        int undo_left = (undo.getMaxHistory() == 0) ? 0 : ((undo.getMaxHistory() > 20) ? -1 : (undo.getMaxHistory() - undo.getHistorySize()));
-        showGameStatus(diff, player.getSteps(), completed, total, undo_left);
+        int undo_left = undo.getUndosLeft();
+        int undo_max = undo.getMaxUndos();
+        showGameStatus(diff, player.getSteps(), completed, total, undo_left, undo_max);
 
         // 3. 打印地图
         printMap(grid, target_positions, player.row, player.col, true);
@@ -460,7 +531,8 @@ void runGameLoop(std::vector<std::vector<char>> grid,
         // 7. 检查胜利条件
         if (!level_complete && checkWinCondition(grid, target_positions)) {
             level_complete = true;
-            saveProgress(user, diff, player.getSteps(), true);
+            int undos_used = undo.getMaxUndos() - undo.getUndosLeft();
+            saveProgress(user, diff, player.getSteps(), true, undos_used);
 
             // 胜利界面
             while (true) {
@@ -534,17 +606,17 @@ int main() {
 
                 int undo_capacity = 0;
                 switch (diff) {
-                    case EASY:   undo_capacity = 50;    break;
-                    case MEDIUM: undo_capacity = 5;     break;
+                    case EASY:   undo_capacity = 5;     break;
+                    case MEDIUM: undo_capacity = 3;     break;
                     case HARD:   undo_capacity = 0;     break;
                 }
                 UndoSystem undo(undo_capacity);
-                undo.clear();
+                // UndoSystem 构造函数已初始化，无需额外 reset
                 GameState initial_state;
 
                 initial_state = saveInitialState(grid, target_positions, player.row, player.col);
                 runGameLoop(grid, target_positions, player, diff, undo, initial_state, user);
-                saveProgress(user, diff, player.getSteps(), false);
+                saveProgress(user, diff, player.getSteps(), false, 0);
                 break;
             }
             case '2': {
@@ -557,8 +629,8 @@ int main() {
 
                 int undo_capacity = 0;
                 switch (saved_diff) {
-                    case EASY:   undo_capacity = 50;    break;
-                    case MEDIUM: undo_capacity = 5;     break;
+                    case EASY:   undo_capacity = 5;     break;
+                    case MEDIUM: undo_capacity = 3;     break;
                     case HARD:   undo_capacity = 0;     break;
                 }
                 UndoSystem undo(undo_capacity);
@@ -568,11 +640,11 @@ int main() {
                 generateRandomMap(grid, start_row, start_col, target_positions, saved_diff);
                 player.setPosition(start_row, start_col);
                 player.resetSteps();
-                undo.clear();
+                // UndoSystem 构造函数已初始化，无需额外 reset
 
                 initial_state = saveInitialState(grid, target_positions, player.row, player.col);
                 runGameLoop(grid, target_positions, player, saved_diff, undo, initial_state, user);
-                saveProgress(user, saved_diff, player.getSteps(), false);
+                saveProgress(user, saved_diff, player.getSteps(), false, 0);
                 break;
             }
             case '3':
@@ -582,6 +654,10 @@ int main() {
             case '4':
                 // 查看进度
                 showUserProgress(user, true);
+                break;
+            case 'l':
+                // 排行榜
+                showLeaderboard();
                 break;
             case 'q':
             case 27:  // ESC

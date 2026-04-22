@@ -36,22 +36,28 @@ struct UndoState {
         : grid(g), player_row(pr), player_col(pc), step_count(sc) {}
 };
 
-// 撤销系统类 —— 使用动态内存（new/delete），课程要求
+// 撤销系统类 —— 基于撤销次数限制 + 状态栈
+// 按难度：Easy=5, Medium=3, Hard=0
+// 每次撤销恢复位置但不回滚步数，且消耗一次撤销次数
 class UndoSystem {
 private:
-    std::stack<UndoState *> history;  // 用指针栈管理动态内存
-    int max_history;
+    std::stack<UndoState *> history;  // 状态历史（用于恢复）
+    int undos_left;      // 剩余撤销次数
+    int max_undos;      // 最大撤销次数（由难度决定）
+    bool used_undo;      // 本关卡是否已使用过撤销
 
 public:
-    UndoSystem(int max_size = 100);
+    UndoSystem(int max_size = 0);
     ~UndoSystem();
 
     void saveState(const std::vector<std::vector<char>> &grid, const Player &player);
     bool undo(std::vector<std::vector<char>> &grid, Player &player);
     void clear();
     bool canUndo() const;
-    int getHistorySize() const;
-    int getMaxHistory() const;
+    int getUndosLeft() const;
+    int getMaxUndos() const;
+    bool hasUsedUndo() const;
+    void reset(int new_max_undos);                                // 重置撤销状态（新关卡）
 };
 
 // —— 玩家操作 ——
@@ -66,8 +72,10 @@ bool movePlayer(Player &player, int direction,
 
 // —— 箱子推动 ——
 // 检查指定方向的箱子是否可以被推动（目标格子不能是墙/障碍/另一个箱子）
+// 注意：如果箱子已经在目标点上，则不可推动
 bool canPushBox(int box_row, int box_col, int direction,
-                const std::vector<std::vector<char>> &grid);
+                const std::vector<std::vector<char>> &grid,
+                const std::vector<std::pair<int, int>> &target_positions);
 // 推动箱子到指定方向，并更新地图格子
 void pushBox(int &box_row, int &box_col, int direction,
              std::vector<std::vector<char>> &grid,

@@ -14,7 +14,7 @@ const char SYMBOL_EMPTY = ' ';       // 空白格子
 const char SYMBOL_PLAYER = '@';      // 玩家
 const char SYMBOL_BOX = '$';         // 箱子
 const char SYMBOL_TARGET = '^';      // 目标点
-const char SYMBOL_OBSTACLE = '.';    // 障碍物
+const char SYMBOL_OBSTACLE = '%';    // 障碍物
 const char SYMBOL_BOX_ON_TARGET = '*';  // 箱子已放置在目标点上
 
 // ANSI 颜色代码

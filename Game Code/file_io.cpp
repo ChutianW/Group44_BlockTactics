@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
+#include <ctime>
 
 // ============================================================
 // UserData 构造函数
@@ -9,11 +11,13 @@
 
 UserData::UserData()
     : username(""), highest_level(1), best_steps_easy(0),
-      best_steps_medium(0), best_steps_hard(0) {}
+      best_steps_medium(0), best_steps_hard(0),
+      total_undos_easy(0), total_undos_medium(0), total_undos_hard(0), created_at(0) {}
 
 UserData::UserData(const std::string &name)
     : username(name), highest_level(1), best_steps_easy(0),
-      best_steps_medium(0), best_steps_hard(0) {}
+      best_steps_medium(0), best_steps_hard(0),
+      total_undos_easy(0), total_undos_medium(0), total_undos_hard(0), created_at(time(nullptr)) {}
 
 // ============================================================
 // 创建新用户
@@ -26,10 +30,10 @@ UserData createNewUser(const std::string &username) {
 // 保存用户数据到文件
 //
 // 文件格式（每行一个用户）：
-//   用户名 最高难度 简单最佳步数 中等最佳步数 困难最佳步数
+//   用户名 最高难度 简单最佳步数 中等最佳步数 困难最佳步数 简单总撤销 中等总撤销 困难总撤销
 // 示例：
-//   Alice 3 45 78 120
-//   Bob 1 0 0 0
+//   Alice 3 45 78 120 12 8 0
+//   Bob 1 0 0 0 0 0 0
 //
 // 实现方式：
 //   1. 读取所有用户数据到 vector
@@ -65,7 +69,11 @@ bool saveUserData(const UserData &data, const std::string &filename) {
              << user.highest_level << " "
              << user.best_steps_easy << " "
              << user.best_steps_medium << " "
-             << user.best_steps_hard << "\n";
+             << user.best_steps_hard << " "
+             << user.total_undos_easy << " "
+             << user.total_undos_medium << " "
+             << user.total_undos_hard << " "
+             << user.created_at << "\n";
     }
 
     file.close();
@@ -93,7 +101,11 @@ bool loadUserData(const std::string &username, UserData &data, const std::string
             ss >> data.highest_level
                >> data.best_steps_easy
                >> data.best_steps_medium
-               >> data.best_steps_hard;
+               >> data.best_steps_hard
+               >> data.total_undos_easy
+               >> data.total_undos_medium
+               >> data.total_undos_hard
+               >> data.created_at;
             file.close();
             return true;
         }
@@ -149,7 +161,11 @@ std::vector<UserData> loadAllUsers(const std::string &filename) {
            >> user.highest_level
            >> user.best_steps_easy
            >> user.best_steps_medium
-           >> user.best_steps_hard;
+           >> user.best_steps_hard
+           >> user.total_undos_easy
+           >> user.total_undos_medium
+           >> user.total_undos_hard
+           >> user.created_at;
 
         if (!user.username.empty()) {
             users.push_back(user);
@@ -187,4 +203,58 @@ bool loadGame(const std::string &filename, int &level, int &steps) {
     file >> level >> steps;
     file.close();
     return true;
+}
+
+// ============================================================
+// 获取排行榜数据
+// 排序优先级：难度 > (步数 + undo次数)
+// 难度高在前，步数+undo少在前
+// ============================================================
+std::vector<LeaderboardEntry> getLeaderboard(const std::string &filename) {
+    std::vector<LeaderboardEntry> entries;
+    std::vector<UserData> users = loadAllUsers(filename);
+
+    for (const auto &user : users) {
+        // 困难难度记录
+        if (user.best_steps_hard > 0) {
+            LeaderboardEntry e;
+            e.username = user.username;
+            e.difficulty = 3;
+            e.best_steps = user.best_steps_hard;
+            e.total_undos = user.total_undos_hard;
+            e.created_at = user.created_at;
+            entries.push_back(e);
+        }
+        // 中等难度记录
+        if (user.best_steps_medium > 0) {
+            LeaderboardEntry e;
+            e.username = user.username;
+            e.difficulty = 2;
+            e.best_steps = user.best_steps_medium;
+            e.total_undos = user.total_undos_medium;
+            e.created_at = user.created_at;
+            entries.push_back(e);
+        }
+        // 简单难度记录
+        if (user.best_steps_easy > 0) {
+            LeaderboardEntry e;
+            e.username = user.username;
+            e.difficulty = 1;
+            e.best_steps = user.best_steps_easy;
+            e.total_undos = user.total_undos_easy;
+            e.created_at = user.created_at;
+            entries.push_back(e);
+        }
+    }
+
+    // 排序：难度高在前，步数+undo少在前
+    std::sort(entries.begin(), entries.end(), [](const LeaderboardEntry &a, const LeaderboardEntry &b) {
+        if (a.difficulty != b.difficulty) return a.difficulty > b.difficulty;
+        int score_a = a.best_steps + a.total_undos;
+        int score_b = b.best_steps + b.total_undos;
+        if (score_a != score_b) return score_a < score_b;
+        return a.created_at < b.created_at;
+    });
+
+    return entries;
 }

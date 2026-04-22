@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <ctime>
 
 // 用户数据结构体 —— 记录每个玩家的进度信息
 struct UserData {
@@ -10,7 +11,11 @@ struct UserData {
     int highest_level;        // 已解锁的最高难度 (1=Easy, 2=Medium, 3=Hard)
     int best_steps_easy;      // 简单难度最佳步数
     int best_steps_medium;    // 中等难度最佳步数
-    int best_steps_hard;      // 困难难度最佳步数
+    int best_steps_hard;     // 困难难度最佳步数
+    int total_undos_easy;    // 简单难度总撤销次数
+    int total_undos_medium;  // 中等难度总撤销次数
+    int total_undos_hard;    // 困难难度总撤销次数
+    time_t created_at;       // 账户创建时间
 
     UserData();
     UserData(const std::string &name);
@@ -35,5 +40,16 @@ UserData createNewUser(const std::string &username);
 bool saveGame(const std::string &filename, int level, int steps);
 // 从文件加载已保存的游戏状态
 bool loadGame(const std::string &filename, int &level, int &steps);
+
+// —— 排行榜 ——
+struct LeaderboardEntry {
+    std::string username;
+    int difficulty;       // 1=Easy, 2=Medium, 3=Hard
+    int best_steps;
+    int total_undos;
+    time_t created_at;
+};
+std::vector<LeaderboardEntry> getLeaderboard(const std::string &filename = "data/user_data.txt");
+void displayLeaderboard(const std::vector<LeaderboardEntry> &leaderboard);
 
 #endif // FILE_IO_H

@@ -4,47 +4,53 @@
 
 ---
 
-## Step 1: Open PowerShell
+## Step 1: Open Terminal
 
-- Press `Win + X` and select **Windows PowerShell**
-- Or search "PowerShell" in the Start menu
+- **macOS:** Open `Terminal` from Applications > Utilities
+- **Linux:** Press `Ctrl+Alt+T` or search "Terminal" in your launcher
 
 ---
 
 ## Step 2: Navigate to Project Folder
 
-Type this command (copy and paste):
-```powershell
-cd "d:\港大教材\y2\comp 2113\Group44_BlockTactics-main"
+```bash
+cd /path/to/Group44_BlockTactics
+```
+
+Or if the project is in your home directory:
+
+```bash
+cd ~/Group44_BlockTactics
 ```
 
 Press **Enter**.
-
-**Expected:** The prompt changes to show the folder path.
 
 ---
 
 ## Step 3: Compile the Game
 
-Type this command (copy and paste):
-```powershell
-g++ -std=c++11 -Wall -o block_tactics "src/main.cpp" "src/map.cpp" "src/player.cpp" "src/file_io.cpp" "src/game.cpp"
+```bash
+cd "Game Code"
+make
 ```
 
 Press **Enter**.
 
-**Expected:** No output means success. If you see errors, check that g++ is installed.
+**Expected:** No output means success. If you see errors, make sure `g++` is installed.
 
 ---
 
 ## Step 4: Run the Game
 
-Type this command:
-```powershell
-.\block_tactics.exe
+```bash
+make run
 ```
 
-Press **Enter**.
+Or directly:
+
+```bash
+./blocktactics
+```
 
 ---
 
@@ -53,7 +59,7 @@ Press **Enter**.
 **You will see:**
 ```
   ╔══════════════════════════════════════════╗
-  ║         🧩 BLOCK TACTICS 🧩              ║
+  ║         BLOCK TACTICS                    ║
   ║      A Sokoban-Style Puzzle Game         ║
   ╚══════════════════════════════════════════╝
 
@@ -83,13 +89,12 @@ Press **Enter**.
 ```
   ═══════════════ MAIN MENU ═══════════════
 
-  Welcome back, player1!
-
   [1] New Game
   [2] Continue (from saved progress)
   [3] View Controls
   [4] View Progress
   [5] Toggle Colors
+  [L] Leaderboard
   [Q] Quit
 
   Enter your choice:
@@ -165,7 +170,7 @@ Press **Enter**.
 | `^` | Target (push boxes here) | Green |
 | `*` | Box on Target (success!) | Bright Green |
 | `#` | Wall (cannot pass) | Gray |
-| `.` | Obstacle (cannot pass) | Gray |
+| `%` | Obstacle (cannot pass) | Dark Gray |
 
 ---
 
@@ -173,7 +178,39 @@ Press **Enter**.
 
 1. **Goal:** Push all boxes (`$`) onto all targets (`^`)
 2. When a box is on a target, it shows as `*`
-3. When ALL targets have boxes, you win! 🎉
+3. When ALL targets have boxes, you win!
+
+---
+
+## Difficulty Levels
+
+| Level | Boxes | Obstacles | Undo Limit |
+|-------|-------|-----------|------------|
+| Easy | 3 | 0 | Unlimited (50 moves) |
+| Medium | 5 | 3-5 | 5 moves |
+| Hard | 7 | 6-10 | Disabled |
+
+---
+
+## Leaderboard
+
+Press **[L]** from the Main Menu to view the leaderboard.
+
+**Ranking Rules:**
+- Priority: Difficulty > (Steps + Undos)
+- Higher difficulty ranks first
+- Among same difficulty, fewer steps + undos ranks higher
+- If still tied, earlier record ranks first
+
+**Rank Colors:**
+| Rank | Color |
+|------|-------|
+| 1st | Gold |
+| 2nd | Silver |
+| 3rd | Orange |
+| 4th+ | White |
+
+**Displayed Info:** Username, Difficulty, Best Steps, Total Undos, Record Date
 
 ---
 
@@ -188,10 +225,10 @@ Press **Enter**.
 
 ## Quick Start Commands (Copy All)
 
-```powershell
-cd "d:\港大教材\y2\comp 2113\Group44_BlockTactics-main"
-g++ -std=c++11 -Wall -o block_tactics "src/main.cpp" "src/map.cpp" "src/player.cpp" "src/file_io.cpp" "src/game.cpp"
-.\block_tactics.exe
+```bash
+cd /path/to/Group44_BlockTactics/Game\ Code
+make
+./blocktactics
 ```
 
 ---
@@ -200,11 +237,21 @@ g++ -std=c++11 -Wall -o block_tactics "src/main.cpp" "src/map.cpp" "src/player.c
 
 | Problem | Solution |
 |---------|----------|
-| `g++ not found` | Install MinGW and add to PATH |
-| `cd` fails | Make sure path is in quotes |
-| Compilation errors | Check all source files exist |
-| Colors not showing | Try a different terminal (Windows Terminal recommended) |
+| `g++ not found` | Install g++: `sudo apt install g++` (Linux) or check Xcode (macOS) |
+| `cd` fails | Make sure path is correct with `ls` |
+| Compilation errors | Check all source files exist with `ls` |
+| Colors not showing | Use a modern terminal (iTerm2 on macOS, GNOME Terminal on Linux) |
+| Game seems stuck | Press `Q` to quit and restart |
 
 ---
 
-## Have Fun! 🎮
+## Game Features
+
+- **Random Maps** - Every game generates a new puzzle
+- **Progress Saving** - Your best scores are saved automatically
+- **Undo System** - Made a mistake? Go back up to 50 moves (Easy mode)
+- **Multiple Difficulties** - Easy, Medium, and Hard modes
+
+---
+
+Enjoy playing Block Tactics!

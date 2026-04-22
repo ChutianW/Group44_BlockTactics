@@ -31,10 +31,12 @@ void Player::setPosition(int new_row, int new_col) {
 
 // ============================================================
 // 撤销系统（动态内存）—— 使用 new/delete 管理状态快照
+// 限制：Easy=5次, Medium=3次, Hard=0次
+// 每次撤销恢复位置但不回滚步数，且消耗一次撤销次数
 // 这是课程要求的 Dynamic Memory 评分点
 // ============================================================
 
-UndoSystem::UndoSystem(int max_size) : max_history(max_size) {}
+UndoSystem::UndoSystem(int max_size) : undos_left(max_size), max_undos(max_size), used_undo(false) {}
 
 UndoSystem::~UndoSystem() {
     clear();
@@ -42,15 +44,15 @@ UndoSystem::~UndoSystem() {
 
 // 保存当前状态到历史记录（用 new 分配动态内存）
 void UndoSystem::saveState(const std::vector<std::vector<char>> &grid, const Player &player) {
-    // 如果最大历史记录为0（Hard难度禁用undo），直接跳过
-    if (max_history == 0) return;
+    // 如果最大撤销次数为0（Hard难度），直接跳过
+    if (max_undos == 0) return;
 
     UndoState *state = new UndoState(grid, player.row, player.col, player.getSteps());
 
     history.push(state);
 
     // 限制历史记录大小，超出则删除最旧的状态
-    while ((int)history.size() > max_history) {
+    while ((int)history.size() > max_undos) {
         UndoState *old = history.top();
         history.pop();
         delete old;
@@ -59,6 +61,11 @@ void UndoSystem::saveState(const std::vector<std::vector<char>> &grid, const Pla
 
 // 撤销上一步操作，恢复之前的状态
 bool UndoSystem::undo(std::vector<std::vector<char>> &grid, Player &player) {
+    // 检查是否还有撤销次数
+    if (!canUndo()) {
+        return false;
+    }
+
     if (history.empty()) {
         return false;
     }
@@ -70,6 +77,10 @@ bool UndoSystem::undo(std::vector<std::vector<char>> &grid, Player &player) {
     grid = state->grid;
     player.row = state->player_row;
     player.col = state->player_col;
+
+    // 消耗一次撤销次数
+    undos_left--;
+    used_undo = true;
 
     // 释放动态内存
     delete state;
@@ -84,18 +95,30 @@ void UndoSystem::clear() {
         history.pop();
         delete state;
     }
+    history = std::stack<UndoState *>();  // 清空栈
 }
 
 bool UndoSystem::canUndo() const {
-    return !history.empty();
+    return undos_left > 0 && !history.empty();
 }
 
-int UndoSystem::getHistorySize() const {
-    return history.size();
+int UndoSystem::getUndosLeft() const {
+    return undos_left;
 }
 
-int UndoSystem::getMaxHistory() const {
-    return max_history;
+int UndoSystem::getMaxUndos() const {
+    return max_undos;
+}
+
+bool UndoSystem::hasUsedUndo() const {
+    return used_undo;
+}
+
+void UndoSystem::reset(int new_max_undos) {
+    clear();
+    max_undos = new_max_undos;
+    undos_left = new_max_undos;
+    used_undo = false;
 }
 
 // ============================================================
@@ -138,9 +161,11 @@ void getDirectionOffset(int direction, int &drow, int &dcol) {
 // ============================================================
 // 检查箱子是否可以被推动
 // 推动方向的下一格必须是空白或目标点（不能是墙/障碍/另一个箱子）
+// 注意：如果箱子已经在目标点上，则不可推动（已完成目标）
 // ============================================================
 bool canPushBox(int box_row, int box_col, int direction,
-                const std::vector<std::vector<char>> &grid) {
+                const std::vector<std::vector<char>> &grid,
+                const std::vector<std::pair<int, int>> &target_positions) {
     int drow, dcol;
     getDirectionOffset(direction, drow, dcol);
 
@@ -149,6 +174,11 @@ bool canPushBox(int box_row, int box_col, int direction,
 
     // 检查越界
     if (behind_row < 0 || behind_row >= MAP_ROWS || behind_col < 0 || behind_col >= MAP_COLS) {
+        return false;
+    }
+
+    // 如果箱子已经在目标点上，禁止推动（已完成目标不可移动）
+    if (isTarget(target_positions, box_col, box_row)) {
         return false;
     }
 
@@ -238,7 +268,7 @@ bool movePlayer(Player &player, int direction,
 
     // 箱子 → 尝试推动
     if (target_cell == SYMBOL_BOX) {
-        if (!canPushBox(new_row, new_col, direction, grid)) {
+        if (!canPushBox(new_row, new_col, direction, grid, target_positions)) {
             return false;  // 箱子推不动
         }
 
