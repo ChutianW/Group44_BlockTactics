@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull *)"
+    ],
+    "additionalDirectories": [
+      "/Users/tinawang/cpp_4_starter/COMP2113/gp/Group44_BlockTactics"
+    ]
+  }
+}
