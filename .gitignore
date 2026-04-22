@@ -1,0 +1,19 @@
+# Compiled binaries
+*.exe
+blocktactics
+
+# Object files
+*.o
+
+# Build artifacts
+Game Code/blocktactics
+Game Code/*.o
+
+# Data files (user progress)
+Game Code/data/user_data.txt
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
