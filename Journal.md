@@ -33,14 +33,9 @@
 - Periodic Group Meeting 2
   1. Go through the game together again
   2. Reverted Changes: Boxes on targets can now be pushed out again (boxes on targets are no longer locked)
+  3. IIP Refactoring: Add `Game` and `Renderer` Class, add subclass `EasyGame`, `MediumGame`, `HardGame` and `RendererWithEffects`
+  4. Add Windows user guideline in PlayerGuiline.md
+  5. Add gitignore to avoid rebundant files in the repository.
 
-## Apr 22 (Later)
-- OOP Refactoring for A+ Requirements:
-  - Added `Game` class: encapsulates game logic, state management, input handling
-  - Added `Renderer` class: encapsulates all display/rendering logic
-  - Added subclasses `EasyGame`, `MediumGame`, `HardGame`: demonstrate polymorphism
-  - Added subclass `RendererWithEffects`: demonstrates polymorphism (method overriding)
-  - Demonstrates **Encapsulation**: private members, public interface
-  - Demonstrates **Polymorphism**: virtual functions, method overriding
-  - Code compiles without warnings (-Wall -Wextra)
+
 
