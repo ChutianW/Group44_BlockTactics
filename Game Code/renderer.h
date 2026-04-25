@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "map.h"
+#include "terminal.h"
 
 // Forward declarations
 struct Player;
@@ -16,7 +17,9 @@ struct LeaderboardEntry;
 // ============================================================================
 class Renderer {
 public:
-    Renderer(bool color_enabled = true);
+    Renderer(bool color_enabled = true,
+             RenderMode render_mode = RenderMode::ASCII,
+             bool ansi_color_supported = true);
     ~Renderer();
 
     // === Basic Output ===
@@ -44,8 +47,22 @@ public:
     void setColorEnabled(bool enabled);
     bool isColorEnabled() const;
 
+    // === Render Mode Control ===
+    void setRenderMode(RenderMode mode);
+    RenderMode getRenderMode() const;
+
 private:
     bool color_enabled;
+    bool ansi_color_supported;
+    RenderMode render_mode;
+
+    const std::string &on(const std::string &code) const;
+    std::string line(int width, char ascii_ch, const std::string &unicode_ch) const;
+    std::string boxTop(int width) const;
+    std::string boxBottom(int width) const;
+    std::string boxMiddle(int width) const;
+    std::string boxEmpty(int width) const;
+    std::string boxRow(const std::string &content, int width) const;
 
     // Polymorphism: different cell types print with different colors
     // Base class method, can be overridden by subclasses

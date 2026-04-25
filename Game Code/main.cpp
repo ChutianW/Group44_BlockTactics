@@ -8,6 +8,7 @@
 #include "file_io.h"
 #include "renderer.h"
 #include "game.h"
+#include "terminal.h"
 
 // ===============================================================================
 // Windows UTF-8 initialization
@@ -29,8 +30,13 @@ int main() {
     // Initialize random seed
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    // Create renderer (colors enabled by default)
-    Renderer renderer(true);
+    // Terminal capability detection (conservative on Windows)
+    TerminalConfig term_cfg = detectTerminalConfig();
+
+    // Create renderer with safe defaults
+    Renderer renderer(term_cfg.color_enabled_by_default,
+                      term_cfg.default_render_mode,
+                      term_cfg.ansi_color_supported);
 
     // Show welcome screen
     renderer.printWelcome();

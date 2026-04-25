@@ -15,9 +15,62 @@
 // Renderer base class implementation
 // ===============================================================================
 
-Renderer::Renderer(bool color_enabled) : color_enabled(color_enabled) {}
+Renderer::Renderer(bool color_enabled, RenderMode render_mode, bool ansi_color_supported)
+    : color_enabled(color_enabled && ansi_color_supported),
+      ansi_color_supported(ansi_color_supported),
+      render_mode(render_mode) {}
 
 Renderer::~Renderer() {}
+
+const std::string &Renderer::on(const std::string &code) const {
+    static const std::string empty;
+    return color_enabled ? code : empty;
+}
+
+std::string Renderer::line(int width, char ascii_ch, const std::string &unicode_ch) const {
+    std::string token = (render_mode == RenderMode::UNICODE) ? unicode_ch : std::string(1, ascii_ch);
+    std::string out;
+    for (int i = 0; i < width; ++i) {
+        out += token;
+    }
+    return out;
+}
+
+std::string Renderer::boxTop(int width) const {
+    if (render_mode == RenderMode::UNICODE) {
+        return "  ╔" + line(width, '=', "═") + "╗";
+    }
+    return "  +" + line(width, '-', "-") + "+";
+}
+
+std::string Renderer::boxBottom(int width) const {
+    if (render_mode == RenderMode::UNICODE) {
+        return "  ╚" + line(width, '=', "═") + "╝";
+    }
+    return "  +" + line(width, '-', "-") + "+";
+}
+
+std::string Renderer::boxMiddle(int width) const {
+    return "  " + line(width, '=', "═");
+}
+
+std::string Renderer::boxEmpty(int width) const {
+    if (render_mode == RenderMode::UNICODE) {
+        return "  ║" + line(width, ' ', " ") + "║";
+    }
+    return "  |" + line(width, ' ', " ") + "|";
+}
+
+std::string Renderer::boxRow(const std::string &content, int width) const {
+    std::string row = content;
+    if (static_cast<int>(row.size()) < width) {
+        row += std::string(width - row.size(), ' ');
+    }
+    if (render_mode == RenderMode::UNICODE) {
+        return "  ║" + row + "║";
+    }
+    return "  |" + row + "|";
+}
 
 // Clear screen (Linux/Windows compatible)
 void Renderer::clearScreen() {
@@ -45,29 +98,37 @@ char Renderer::getInput() {
 }
 
 void Renderer::setColorEnabled(bool enabled) {
-    color_enabled = enabled;
+    color_enabled = enabled && ansi_color_supported;
 }
 
 bool Renderer::isColorEnabled() const {
     return color_enabled;
 }
 
+void Renderer::setRenderMode(RenderMode mode) {
+    render_mode = mode;
+}
+
+RenderMode Renderer::getRenderMode() const {
+    return render_mode;
+}
+
 // Welcome screen
 void Renderer::printWelcome() {
     clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
+    std::cout << on(COLOR_CYAN) << on(COLOR_BOLD);
     std::cout << "\n";
-    std::cout << "  ╔══════════════════════════════════════════╗\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ║         BLOCK TACTICS                    ║\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ║      A Sokoban-Style Puzzle Game         ║\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ║         COMP2113 / ENGG1340              ║\n";
-    std::cout << "  ║            Group 44                      ║\n";
-    std::cout << "  ║                                          ║\n";
-    std::cout << "  ╚══════════════════════════════════════════╝\n";
-    std::cout << COLOR_RESET << "\n";
+    std::cout << boxTop(42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxRow("         BLOCK TACTICS                    ", 42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxRow("      A Sokoban-Style Puzzle Game         ", 42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxRow("         COMP2113 / ENGG1340              ", 42) << "\n";
+    std::cout << boxRow("            Group 44                      ", 42) << "\n";
+    std::cout << boxEmpty(42) << "\n";
+    std::cout << boxBottom(42) << "\n";
+    std::cout << on(COLOR_RESET) << "\n";
     std::cout << "  Press any key to continue...\n";
     getInput();
 }
