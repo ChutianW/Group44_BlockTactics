@@ -45,8 +45,15 @@ int main() {
     UserData user;
     std::string username;
     {
-        // Login logic
-        std::cout << "\n  ═══════════════ LOGIN ═══════════════\n\n";
+        // Login logic - use ASCII on non-Unicode terminals
+        std::string login_border;
+        if (renderer.getRenderMode() == RenderMode::UNICODE) {
+            login_border = "  ═══════════════ LOGIN ═══════════════";
+        } else {
+            login_border = "  =============== LOGIN ===============";
+        }
+
+        std::cout << "\n  " << login_border << "\n\n";
         std::cout << "  Enter your username: ";
         std::cin >> username;
         std::cin.ignore();
@@ -57,7 +64,7 @@ int main() {
         } else {
             user = createNewUser(username);
             saveUserData(user);
-            std::cout << "\n  New user created: " << COLOR_YELLOW << username << COLOR_RESET << "\n";
+            std::cout << "\n  New user created: " << COLOR_YELLOW << username << COLOR_RESET << "!\n";
             std::cout << "  Starting from Easy difficulty.\n";
         }
         std::cout << "\n  Press any key to continue...\n";
@@ -165,11 +172,25 @@ int main() {
     saveUserData(user);
 
     renderer.clearScreen();
-    std::cout << COLOR_CYAN << COLOR_BOLD;
-    std::cout << "\n  ═══════════════════════════════════════════\n";
+
+    // Goodbye screen - use ASCII on non-Unicode terminals
+    std::string goodbye_border;
+    if (renderer.getRenderMode() == RenderMode::UNICODE) {
+        goodbye_border = "  ═══════════════════════════════════════════";
+    } else {
+        goodbye_border = "  ===========================================";
+    }
+
+    if (renderer.isColorEnabled()) {
+        std::cout << COLOR_CYAN << COLOR_BOLD;
+    }
+    std::cout << "\n  " << goodbye_border << "\n";
     std::cout << "       Thanks for playing Block Tactics!\n";
-    std::cout << "  ═══════════════════════════════════════════\n";
-    std::cout << COLOR_RESET << "\n";
+    std::cout << "  " << goodbye_border << "\n";
+    if (renderer.isColorEnabled()) {
+        std::cout << COLOR_RESET;
+    }
+    std::cout << "\n";
 
     return 0;
 }
