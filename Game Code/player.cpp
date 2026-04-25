@@ -1,7 +1,11 @@
 #include "player.h"
 #include <iostream>
+#ifdef _WIN32
+#include <conio.h>
+#else
 #include <termios.h>
 #include <unistd.h>
+#endif
 
 // ============================================================
 // Player struct member functions
@@ -275,9 +279,14 @@ bool movePlayer(Player &player, int direction,
 }
 
 // ============================================================
-// Linux: read single char without Enter (termios)
+// Cross-platform: read single char without Enter
+// Windows: _getch() from conio.h
+// Linux/macOS: termios-based implementation
 // ============================================================
 char getch() {
+#ifdef _WIN32
+    return _getch();
+#else
     struct termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
@@ -286,6 +295,7 @@ char getch() {
     char ch = getchar();
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return ch;
+#endif
 }
 
 // ============================================================

@@ -2,8 +2,12 @@
 #include "player.h"
 #include "file_io.h"
 #include <iostream>
+#ifdef _WIN32
+#include <conio.h>
+#else
 #include <termios.h>
 #include <unistd.h>
+#endif
 #include <iomanip>
 #include <ctime>
 
@@ -24,8 +28,11 @@ void Renderer::clearScreen() {
 #endif
 }
 
-// Get single char input
+// Get single char input (cross-platform)
 char Renderer::getInput() {
+#ifdef _WIN32
+    return _getch();
+#else
     struct termios oldt, newt;
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
@@ -34,6 +41,7 @@ char Renderer::getInput() {
     char ch = getchar();
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return ch;
+#endif
 }
 
 void Renderer::setColorEnabled(bool enabled) {
