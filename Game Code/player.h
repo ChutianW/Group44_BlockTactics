@@ -45,6 +45,8 @@ private:
     int undos_left;
     int max_undos;
     bool used_undo;
+    bool undo_enabled;
+    bool unlimited_undo;
 
 public:
     UndoSystem(int max_size = 0);
@@ -57,7 +59,9 @@ public:
     int getUndosLeft() const;
     int getMaxUndos() const;
     bool hasUsedUndo() const;
-    void reset(int new_max_undos);
+    bool isEnabled() const;
+    bool isUnlimited() const;
+    void reset(int new_max_undos, bool enabled = true);
 };
 
 // Player operations
