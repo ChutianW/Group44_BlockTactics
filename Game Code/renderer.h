@@ -63,6 +63,8 @@ private:
     std::string boxMiddle(int width) const;
     std::string boxEmpty(int width) const;
     std::string boxRow(const std::string &content, int width) const;
+    std::string menuBorder(const std::string &title) const;
+    std::string menuSep(int width) const;
 
     // Polymorphism: different cell types print with different colors
     // Base class method, can be overridden by subclasses
