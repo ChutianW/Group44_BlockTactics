@@ -70,6 +70,8 @@ protected:
 private:
     // === Private members ===
     int getCurrentUndoLimit() const;
+    bool isUndoAllowed() const;
+    void configureUndoForCurrentDifficulty();
 };
 
 // ============================================================================

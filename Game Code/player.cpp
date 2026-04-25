@@ -33,7 +33,19 @@ void Player::setPosition(int new_row, int new_col) {
 // Undo restores position but not step count, consumes one undo
 // ============================================================
 
-UndoSystem::UndoSystem(int max_size) : undos_left(max_size), max_undos(max_size), used_undo(false) {}
+UndoSystem::UndoSystem(int max_size)
+    : undos_left(max_size),
+      max_undos(max_size),
+      used_undo(false),
+      undo_enabled(max_size != 0),
+      unlimited_undo(max_size < 0) {
+    if (!undo_enabled) {
+        undos_left = 0;
+        max_undos = 0;
+    } else if (unlimited_undo) {
+        undos_left = -1;
+    }
+}
 
 UndoSystem::~UndoSystem() {
     clear();
@@ -41,22 +53,32 @@ UndoSystem::~UndoSystem() {
 
 // Save current state to history (allocates with new)
 void UndoSystem::saveState(const std::vector<std::vector<char>> &grid, const Player &player) {
-    if (max_undos == 0) return;
+    if (!undo_enabled) return;
 
     UndoState *state = new UndoState(grid, player.row, player.col, player.getSteps());
     history.push(state);
 
-    while ((int)history.size() > max_undos) {
-        UndoState *old = history.top();
+    while (!unlimited_undo && (int)history.size() > max_undos) {
+        std::stack<UndoState *> temp;
+        while (history.size() > 1) {
+            temp.push(history.top());
+            history.pop();
+        }
+
+        UndoState *oldest = history.top();
         history.pop();
-        delete old;
+        delete oldest;
+
+        while (!temp.empty()) {
+            history.push(temp.top());
+            temp.pop();
+        }
     }
 }
 
 // Undo last move, restore previous state
 bool UndoSystem::undo(std::vector<std::vector<char>> &grid, Player &player) {
     if (!canUndo()) return false;
-    if (history.empty()) return false;
 
     UndoState *state = history.top();
     history.pop();
@@ -65,7 +87,9 @@ bool UndoSystem::undo(std::vector<std::vector<char>> &grid, Player &player) {
     player.row = state->player_row;
     player.col = state->player_col;
 
-    undos_left--;
+    if (!unlimited_undo) {
+        undos_left--;
+    }
     used_undo = true;
 
     delete state;
@@ -83,7 +107,13 @@ void UndoSystem::clear() {
 }
 
 bool UndoSystem::canUndo() const {
-    return undos_left > 0 && !history.empty();
+    if (!undo_enabled || history.empty()) {
+        return false;
+    }
+    if (unlimited_undo) {
+        return true;
+    }
+    return undos_left > 0;
 }
 
 int UndoSystem::getUndosLeft() const {
@@ -98,10 +128,25 @@ bool UndoSystem::hasUsedUndo() const {
     return used_undo;
 }
 
-void UndoSystem::reset(int new_max_undos) {
+bool UndoSystem::isEnabled() const {
+    return undo_enabled;
+}
+
+bool UndoSystem::isUnlimited() const {
+    return unlimited_undo;
+}
+
+void UndoSystem::reset(int new_max_undos, bool enabled) {
     clear();
-    max_undos = new_max_undos;
-    undos_left = new_max_undos;
+    undo_enabled = enabled;
+    unlimited_undo = enabled && new_max_undos < 0;
+    if (!undo_enabled) {
+        max_undos = 0;
+        undos_left = 0;
+    } else {
+        max_undos = new_max_undos;
+        undos_left = unlimited_undo ? -1 : new_max_undos;
+    }
     used_undo = false;
 }
 
