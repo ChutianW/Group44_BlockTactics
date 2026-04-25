@@ -28,36 +28,22 @@ const std::string &Renderer::on(const std::string &code) const {
 }
 
 std::string Renderer::line(int width, char ascii_ch, const std::string &unicode_ch) const {
-    std::string token = (render_mode == RenderMode::UNICODE) ? unicode_ch : std::string(1, ascii_ch);
-    std::string out;
-    for (int i = 0; i < width; ++i) {
-        out += token;
-    }
-    return out;
+    return std::string(width, ascii_ch);
 }
 
 std::string Renderer::boxTop(int width) const {
-    if (render_mode == RenderMode::UNICODE) {
-        return "  ╔" + line(width, '=', "═") + "╗";
-    }
     return "  +" + line(width, '-', "-") + "+";
 }
 
 std::string Renderer::boxBottom(int width) const {
-    if (render_mode == RenderMode::UNICODE) {
-        return "  ╚" + line(width, '=', "═") + "╝";
-    }
     return "  +" + line(width, '-', "-") + "+";
 }
 
 std::string Renderer::boxMiddle(int width) const {
-    return "  " + line(width, '=', "═");
+    return "  " + line(width, '=', "=");
 }
 
 std::string Renderer::boxEmpty(int width) const {
-    if (render_mode == RenderMode::UNICODE) {
-        return "  ║" + line(width, ' ', " ") + "║";
-    }
     return "  |" + line(width, ' ', " ") + "|";
 }
 
@@ -65,9 +51,6 @@ std::string Renderer::boxRow(const std::string &content, int width) const {
     std::string row = content;
     if (static_cast<int>(row.size()) < width) {
         row += std::string(width - row.size(), ' ');
-    }
-    if (render_mode == RenderMode::UNICODE) {
-        return "  ║" + row + "║";
     }
     return "  |" + row + "|";
 }
@@ -140,17 +123,13 @@ void Renderer::printWelcome() {
 std::string Renderer::menuBorder(const std::string &title) const {
     int title_len = static_cast<int>(title.size());
     int side_len = (24 - title_len) / 2;
-    std::string sep = (render_mode == RenderMode::UNICODE) ? "═" : "=";
-    std::string side(side_len, sep[0]);
-    if (render_mode == RenderMode::UNICODE) {
-        return " " + side + title + side + " ";
-    }
+    // Always use ASCII: = for borders, works on all terminals
+    std::string side(side_len, '=');
     return " " + side + title + side + " ";
 }
 
 std::string Renderer::menuSep(int width) const {
-    std::string sep = (render_mode == RenderMode::UNICODE) ? "─" : "-";
-    return "  " + std::string(width, sep[0]);
+    return "  " + std::string(width, '-');
 }
 
 // Main menu
