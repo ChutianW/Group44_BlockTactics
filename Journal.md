@@ -71,3 +71,13 @@
   - Added PowerShell-safe run command (`.\\blocktactics.exe`)
   - Added forced ASCII fallback command (`$env:BLOCKTACTICS_FORCE_ASCII="1"; .\\blocktactics.exe`)
 
+## Apr 25 (Undo Behavior Consistency Fix)
+- Fixed undo snapshot retention bug so one undo now correctly returns to exactly one previous move (instead of jumping back too far).
+- Unified difficulty undo behavior to match design:
+  - Easy: unlimited undo
+  - Medium: 5 undos
+  - Hard: no undo
+- Fixed cross-level transition behavior (Medium -> Hard):
+  - Undo state is reconfigured and reset by current difficulty when levels/maps are initialized.
+  - Hard mode now consistently shows `U:N/A` and disables undo input after transitioning from earlier levels.
+
