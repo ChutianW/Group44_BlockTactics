@@ -81,6 +81,15 @@ bool isValidBoxPosition(const std::vector<std::vector<char>> &grid, int x, int y
 bool isValidTargetPosition(const std::vector<std::vector<char>> &grid, int x, int y);
 bool hasMinimumMobility(const std::vector<std::vector<char>> &grid, int x, int y);
 
+// Dead zone detection (deadlock checking)
+bool isDeadlocked(const std::vector<std::vector<char>> &grid,
+                  const std::vector<std::pair<int, int>> &target_positions,
+                  int box_row, int box_col);
+bool isCornerDeadlock(const std::vector<std::vector<char>> &grid, int box_row, int box_col);
+bool isWallDeadlock(const std::vector<std::vector<char>> &grid, int box_row, int box_col);
+bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, int box_col);
+bool isMultiBoxDeadlock(const std::vector<std::vector<char>> &grid, int box_row, int box_col);
+
 // Map display
 void printMap(const std::vector<std::vector<char>> &grid,
               const std::vector<std::pair<int, int>> &target_positions,

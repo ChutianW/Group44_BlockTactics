@@ -200,6 +200,315 @@ bool hasMinimumMobility(const std::vector<std::vector<char>> &grid, int x, int y
 }
 
 // ============================================================
+// Dead Zone Detection (Sokoban Deadlock Detection)
+// ============================================================
+
+// Check if cell is blocked (wall or obstacle)
+static bool isBlocked(char cell) {
+    return cell == SYMBOL_WALL || cell == SYMBOL_OBSTACLE;
+}
+
+// Check if a direction is blocked
+static bool isDirectionBlocked(const std::vector<std::vector<char>> &grid, int row, int col, int dRow, int dCol) {
+    int newRow = row + dRow;
+    int newCol = col + dCol;
+    if (newRow < 0 || newRow >= MAP_ROWS || newCol < 0 || newCol >= MAP_COLS) {
+        return true;
+    }
+    return isBlocked(grid[newRow][newCol]);
+}
+
+// 1. Corner Deadlock: box in corner with walls on two perpendicular sides
+// A corner is permanently dead if it's against walls in an L-shape
+bool isCornerDeadlock(const std::vector<std::vector<char>> &grid, int box_row, int box_col) {
+    // Must be against at least one wall or obstacle
+    bool hasBlocker = false;
+
+    // Check all four directions
+    // UP, DOWN, LEFT, RIGHT
+    bool blocked[4] = {false};
+
+    for (int dir = 0; dir < 4; dir++) {
+        int dRow = (dir == 0) ? -1 : (dir == 1) ? 1 : 0;
+        int dCol = (dir == 2) ? -1 : (dir == 3) ? 1 : 0;
+
+        if (isDirectionBlocked(grid, box_row, box_col, dRow, dCol)) {
+            blocked[dir] = true;
+            hasBlocker = true;
+        }
+    }
+
+    if (!hasBlocker) {
+        return false;  // Not against any wall, not a corner deadlock
+    }
+
+    // Corner deadlock: walls in two perpendicular directions
+    // UP + LEFT, UP + RIGHT, DOWN + LEFT, DOWN + RIGHT
+    if (blocked[0] && blocked[2]) return true;  // UP + LEFT
+    if (blocked[0] && blocked[3]) return true;  // UP + RIGHT
+    if (blocked[1] && blocked[2]) return true;  // DOWN + LEFT
+    if (blocked[1] && blocked[3]) return true;  // DOWN + RIGHT
+
+    return false;
+}
+
+// 2. Single-Side Wall Deadlock: box against wall but can only be pushed one way
+// If box is in a straight line against a wall and can't be pushed sideways
+bool isWallDeadlock(const std::vector<std::vector<char>> &grid, int box_row, int box_col) {
+    // Check if box is against a wall/obstacle
+    int blockingCount = 0;
+    int blockingDirs[2] = {-1, -1};
+
+    for (int dir = 0; dir < 4; dir++) {
+        int dRow = (dir == 0) ? -1 : (dir == 1) ? 1 : 0;
+        int dCol = (dir == 2) ? -1 : (dir == 3) ? 1 : 0;
+
+        if (isDirectionBlocked(grid, box_row, box_col, dRow, dCol)) {
+            if (blockingCount < 2) {
+                blockingDirs[blockingCount] = dir;
+            }
+            blockingCount++;
+        }
+    }
+
+    if (blockingCount != 2) {
+        return false;  // Need exactly 2 blockers for wall deadlock
+    }
+
+    // Check if the two blockers are opposite directions (parallel to wall)
+    // This means the box can only move in one direction
+    if ((blockingDirs[0] == 0 && blockingDirs[1] == 1) ||
+        (blockingDirs[0] == 1 && blockingDirs[1] == 0) ||
+        (blockingDirs[0] == 2 && blockingDirs[1] == 3) ||
+        (blockingDirs[0] == 3 && blockingDirs[1] == 2)) {
+        // Box is sandwiched between two walls - it's in a corridor
+        // This is NOT a wall deadlock unless it's at the end of the corridor
+        return false;
+    }
+
+    // Two perpendicular blockers - box is in a corner-like position
+    // Check if it's actually a valid corner (box can still be pushed)
+    // A wall deadlock occurs when box is against a single wall and can't move sideways
+    // For simplicity: if box has only 2 adjacent free cells and is against a wall
+    int freeCount = countAdjacentFree(grid, box_col, box_row);
+    if (freeCount == 1 && blockingCount == 1) {
+        return true;  // Can only move in one direction, stuck at wall
+    }
+
+    return false;
+}
+
+// 3. Dead-End Alley Single-Row Deadlock: box at end of dead-end corridor
+// Check if box is in a 1-cell wide corridor that's a dead end
+bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, int box_col) {
+    // A dead-end is a 1-cell wide corridor where the box is at the blind end
+    // The corridor must have walls on both sides perpendicular to its direction
+
+    // Check if this is a horizontal corridor
+    bool leftBlocked = isDirectionBlocked(grid, box_row, box_col, 0, -1);
+    bool rightBlocked = isDirectionBlocked(grid, box_row, box_col, 0, 1);
+    bool upBlocked = isDirectionBlocked(grid, box_row, box_col, -1, 0);
+    bool downBlocked = isDirectionBlocked(grid, box_row, box_col, 1, 0);
+
+    // Horizontal dead-end: walls above and below, open on one side, blocked on other
+    if (upBlocked && downBlocked) {
+        // Horizontal corridor
+        int freeLeft = 0, freeRight = 0;
+        // Check how far we can go left/right while staying in corridor
+        int leftCol = box_col - 1;
+        while (leftCol > 0 && !isBlocked(grid[box_row][leftCol])) {
+            // Check if still in corridor
+            if (isDirectionBlocked(grid, box_row, leftCol, -1, 0) &&
+                isDirectionBlocked(grid, box_row, leftCol, 1, 0)) {
+                freeLeft++;
+            } else {
+                break;
+            }
+            leftCol--;
+        }
+
+        int rightCol = box_col + 1;
+        while (rightCol < MAP_COLS - 1 && !isBlocked(grid[box_row][rightCol])) {
+            if (isDirectionBlocked(grid, box_row, rightCol, -1, 0) &&
+                isDirectionBlocked(grid, box_row, rightCol, 1, 0)) {
+                freeRight++;
+            } else {
+                break;
+            }
+            rightCol++;
+        }
+
+        // Dead-end if one side open, other side closed
+        bool leftOpen = leftCol > 0 && !isBlocked(grid[box_row][leftCol]);
+        bool rightOpen = rightCol < MAP_COLS - 1 && !isBlocked(grid[box_row][rightCol]);
+
+        if ((leftOpen && !rightOpen) || (!leftOpen && rightOpen)) {
+            // Box is at the blind end of a corridor
+            // Check if the box can be pulled back (player can get behind it)
+            int pullDir = leftOpen ? -1 : 1;
+            int behindRow = box_row;
+            int behindCol = box_col + pullDir;  // Direction to pull from
+
+            // The player needs to be on the opposite side to pull
+            // This is a simplified check - actual implementation may need player position
+            return true;
+        }
+    }
+
+    // Vertical dead-end
+    bool leftBlockedV = isDirectionBlocked(grid, box_row, box_col, 0, -1);
+    bool rightBlockedV = isDirectionBlocked(grid, box_row, box_col, 0, 1);
+    bool upBlockedV = isDirectionBlocked(grid, box_row, box_col, -1, 0);
+    bool downBlockedV = isDirectionBlocked(grid, box_row, box_col, 1, 0);
+
+    if (leftBlockedV && rightBlockedV) {
+        // Vertical corridor
+        int freeUp = 0, freeDown = 0;
+        int upRow = box_row - 1;
+        while (upRow > 0 && !isBlocked(grid[upRow][box_col])) {
+            if (isDirectionBlocked(grid, upRow, box_col, 0, -1) &&
+                isDirectionBlocked(grid, upRow, box_col, 0, 1)) {
+                freeUp++;
+            } else {
+                break;
+            }
+            upRow--;
+        }
+
+        int downRow = box_row + 1;
+        while (downRow < MAP_ROWS - 1 && !isBlocked(grid[downRow][box_col])) {
+            if (isDirectionBlocked(grid, downRow, box_col, 0, -1) &&
+                isDirectionBlocked(grid, downRow, box_col, 0, 1)) {
+                freeDown++;
+            } else {
+                break;
+            }
+            downRow++;
+        }
+
+        bool upOpen = upRow > 0 && !isBlocked(grid[upRow][box_col]);
+        bool downOpen = downRow < MAP_ROWS - 1 && !isBlocked(grid[downRow][box_col]);
+
+        if ((upOpen && !downOpen) || (!upOpen && downOpen)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// 4. Multi-Box Interlocking Deadlock: boxes blocking each other
+// Two boxes in a narrow channel, neither can move
+bool isMultiBoxDeadlock(const std::vector<std::vector<char>> &grid, int box_row, int box_col) {
+    // Check for horizontal pair
+    if (box_col > 0 && grid[box_row][box_col - 1] == SYMBOL_BOX) {
+        // Box to the left
+        int behindCol = box_col + 1;  // Direction we'd push from
+        if (behindCol < MAP_COLS - 1) {
+            char behind = grid[box_row][behindCol];
+            if (isBlocked(behind)) {
+                // Both boxes blocked in horizontal channel
+                // Check if vertical escape exists for either
+                bool box1CanEscape = !isDirectionBlocked(grid, box_row, box_col, -1, 0) ||
+                                     !isDirectionBlocked(grid, box_row, box_col, 1, 0);
+                bool box2CanEscape = !isDirectionBlocked(grid, box_row, box_col - 1, -1, 0) ||
+                                    !isDirectionBlocked(grid, box_row, box_col - 1, 1, 0);
+                if (!box1CanEscape && !box2CanEscape) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    if (box_col < MAP_COLS - 1 && grid[box_row][box_col + 1] == SYMBOL_BOX) {
+        // Box to the right
+        int behindCol = box_col - 1;  // Direction we'd push from
+        if (behindCol > 0) {
+            char behind = grid[box_row][behindCol];
+            if (isBlocked(behind)) {
+                bool box1CanEscape = !isDirectionBlocked(grid, box_row, box_col, -1, 0) ||
+                                     !isDirectionBlocked(grid, box_row, box_col, 1, 0);
+                bool box2CanEscape = !isDirectionBlocked(grid, box_row, box_col + 1, -1, 0) ||
+                                    !isDirectionBlocked(grid, box_row, box_col + 1, 1, 0);
+                if (!box1CanEscape && !box2CanEscape) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    // Check for vertical pair
+    if (box_row > 0 && grid[box_row - 1][box_col] == SYMBOL_BOX) {
+        // Box above
+        int behindRow = box_row + 1;
+        if (behindRow < MAP_ROWS - 1) {
+            char behind = grid[behindRow][box_col];
+            if (isBlocked(behind)) {
+                bool box1CanEscape = !isDirectionBlocked(grid, box_row, box_col, 0, -1) ||
+                                     !isDirectionBlocked(grid, box_row, box_col, 0, 1);
+                bool box2CanEscape = !isDirectionBlocked(grid, box_row - 1, box_col, 0, -1) ||
+                                    !isDirectionBlocked(grid, box_row - 1, box_col, 0, 1);
+                if (!box1CanEscape && !box2CanEscape) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    if (box_row < MAP_ROWS - 1 && grid[box_row + 1][box_col] == SYMBOL_BOX) {
+        // Box below
+        int behindRow = box_row - 1;
+        if (behindRow > 0) {
+            char behind = grid[behindRow][box_col];
+            if (isBlocked(behind)) {
+                bool box1CanEscape = !isDirectionBlocked(grid, box_row, box_col, 0, -1) ||
+                                     !isDirectionBlocked(grid, box_row, box_col, 0, 1);
+                bool box2CanEscape = !isDirectionBlocked(grid, box_row + 1, box_col, 0, -1) ||
+                                    !isDirectionBlocked(grid, box_row + 1, box_col, 0, 1);
+                if (!box1CanEscape && !box2CanEscape) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+// Main deadlock detection function
+// Returns true if the box at (box_row, box_col) is in a permanent deadlock
+bool isDeadlocked(const std::vector<std::vector<char>> &grid,
+                  const std::vector<std::pair<int, int>> &target_positions,
+                  int box_row, int box_col) {
+    // If box is already on a target, it's not deadlocked
+    if (isTarget(target_positions, box_col, box_row)) {
+        return false;
+    }
+
+    // 1. Corner deadlock: box in corner with walls on two sides
+    if (isCornerDeadlock(grid, box_row, box_col)) {
+        return true;
+    }
+
+    // 2. Wall deadlock: box against wall but stuck
+    if (isWallDeadlock(grid, box_row, box_col)) {
+        return true;
+    }
+
+    // 3. Dead-end alley deadlock
+    if (isDeadEndDeadlock(grid, box_row, box_col)) {
+        return true;
+    }
+
+    // 4. Multi-box interlocking
+    if (isMultiBoxDeadlock(grid, box_row, box_col)) {
+        return true;
+    }
+
+    return false;
+}
+
+// ============================================================
 // Randomly place player (find position in inner empty area)
 // ============================================================
 bool placePlayer(std::vector<std::vector<char>> &grid, int &start_row, int &start_col) {
