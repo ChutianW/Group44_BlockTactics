@@ -20,20 +20,7 @@ Game::~Game() {}
 
 // Get current undo limit based on difficulty (protected helper)
 int Game::getCurrentUndoLimit() const {
-    switch (difficulty_) {
-        case EASY:   return -1;
-        case MEDIUM: return 5;
-        case HARD:   return 0;
-        default:     return 0;
-    }
-}
-
-bool Game::isUndoAllowed() const {
-    return difficulty_ != HARD;
-}
-
-void Game::configureUndoForCurrentDifficulty() {
-    undo_.reset(getCurrentUndoLimit(), isUndoAllowed());
+    return getUndoLimit();
 }
 
 void Game::setUserData(UserData *user) {
@@ -55,10 +42,10 @@ Difficulty Game::getDifficulty() const {
 // Polymorphic methods with default implementations
 int Game::getUndoLimit() const {
     switch (difficulty_) {
-        case EASY:   return -1;
-        case MEDIUM: return 5;
+        case EASY:   return 5;
+        case MEDIUM: return 3;
         case HARD:   return 0;
-        default:     return 0;
+        default:     return 5;
     }
 }
 
@@ -81,7 +68,7 @@ void Game::initLevel() {
     player_.setPosition(start_row, start_col);
     player_.resetSteps();
 
-    configureUndoForCurrentDifficulty();
+    undo_.reset(getUndoLimit());
 
     initial_state_ = saveInitialState(grid_, targets_, player_.row, player_.col);
 
@@ -97,7 +84,7 @@ void Game::generateNewMap() {
     player_.setPosition(start_row, start_col);
     player_.resetSteps();
 
-    configureUndoForCurrentDifficulty();
+    undo_.reset(getUndoLimit());
 
     initial_state_ = saveInitialState(grid_, targets_, player_.row, player_.col);
 }
@@ -119,11 +106,7 @@ void Game::run() {
         renderer_->printMap(grid_, targets_, player_.row, player_.col);
 
         // 4. Operation hints
-        if (isUndoAllowed()) {
-            std::cout << "  [W/A/S/D] Move | [R] Restart | [U] Undo | [H] Help | [Q] Quit\n";
-        } else {
-            std::cout << "  [W/A/S/D] Move | [R] Restart | [H] Help | [Q] Quit\n";
-        }
+        std::cout << "  [W/A/S/D] Move | [R] Restart | [U] Undo | [H] Help | [Q] Quit\n";
 
         // 5. Read input
         char input = renderer_->getInput();
@@ -192,9 +175,6 @@ void Game::handleRestart() {
 
 // Handle undo
 void Game::handleUndo() {
-    if (!isUndoAllowed()) {
-        return;
-    }
     if (undo_.canUndo()) {
         undo_.undo(grid_, player_);
     }
@@ -202,7 +182,7 @@ void Game::handleUndo() {
 
 // Handle help
 void Game::handleHelp() {
-    renderer_->printHelp(isUndoAllowed());
+    renderer_->printHelp();
     std::cout << "  Press any key to continue...\n";
     renderer_->getInput();
 }
@@ -294,12 +274,15 @@ void Game::nextLevel() {
 // EasyGame subclass - polymorphism
 // ============================================================================
 
-EasyGame::EasyGame(Renderer *renderer) : Game(EASY, renderer) {}
+EasyGame::EasyGame(Renderer *renderer) : Game(EASY, renderer) {
+    // Reinitialize undo system with correct limit for Easy mode
+    undo_.reset(5);
+}
 
 EasyGame::~EasyGame() {}
 
 int EasyGame::getUndoLimit() const {
-    return -1;  // Easy mode has unlimited undos
+    return 5;  // Easy mode has 5 undos
 }
 
 int EasyGame::getBoxCount() const {
@@ -315,12 +298,14 @@ void EasyGame::getObstacleRange(int &min, int &max) const {
 // MediumGame subclass - polymorphism
 // ============================================================================
 
-MediumGame::MediumGame(Renderer *renderer) : Game(MEDIUM, renderer) {}
+MediumGame::MediumGame(Renderer *renderer) : Game(MEDIUM, renderer) {
+    undo_.reset(3);
+}
 
 MediumGame::~MediumGame() {}
 
 int MediumGame::getUndoLimit() const {
-    return 5;  // Medium mode has limited undos
+    return 3;  // Medium mode has 3 undos
 }
 
 int MediumGame::getBoxCount() const {
@@ -336,7 +321,9 @@ void MediumGame::getObstacleRange(int &min, int &max) const {
 // HardGame subclass - polymorphism
 // ============================================================================
 
-HardGame::HardGame(Renderer *renderer) : Game(HARD, renderer) {}
+HardGame::HardGame(Renderer *renderer) : Game(HARD, renderer) {
+    undo_.reset(0);
+}
 
 HardGame::~HardGame() {}
 

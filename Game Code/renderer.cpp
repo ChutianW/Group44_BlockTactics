@@ -312,8 +312,6 @@ void Renderer::printGameStatus(Difficulty diff, int steps, int completed, int to
 
     if (undo_max == 0) {
         std::cout << " | U:" << on(COLOR_GRAY) << "N/A" << on(COLOR_CYAN);
-    } else if (undo_max < 0) {
-        std::cout << " | U:" << on(COLOR_YELLOW) << "INF" << on(COLOR_CYAN);
     } else {
         std::cout << " | U:" << on(COLOR_YELLOW) << undo_left << on(COLOR_CYAN) << "/" << on(COLOR_YELLOW) << undo_max << on(COLOR_CYAN);
     }
@@ -413,16 +411,12 @@ void Renderer::printMap(const std::vector<std::vector<char>> &grid,
 }
 
 // Quick help
-void Renderer::printHelp(bool undo_available) {
+void Renderer::printHelp() {
     std::cout << "\n";
     std::cout << on(COLOR_CYAN);
     std::cout << "  " << line(13, '=', "═") << " QUICK HELP " << line(13, '=', "═") << "\n";
     std::cout << on(COLOR_RESET);
-    if (undo_available) {
-        std::cout << "  W/A/S/D = Move | R = Restart | U = Undo\n";
-    } else {
-        std::cout << "  W/A/S/D = Move | R = Restart\n";
-    }
+    std::cout << "  W/A/S/D = Move | R = Restart | U = Undo\n";
     std::cout << "  Q = Quit to Menu | H = This help\n";
     std::cout << "  Goal: Push all " << on(COLOR_RED) << "$" << on(COLOR_RESET)
               << " onto " << on(COLOR_GREEN) << "^" << on(COLOR_RESET) << "\n";

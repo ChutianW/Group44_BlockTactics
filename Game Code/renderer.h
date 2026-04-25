@@ -40,7 +40,7 @@ public:
     void printMap(const std::vector<std::vector<char>> &grid,
                   const std::vector<std::pair<int, int>> &target_positions,
                   int player_row, int player_col);
-    void printHelp(bool undo_available = true);
+    void printHelp();
     virtual void printWinScreen(int steps, const UserData &user, Difficulty diff);
 
     // === Color Control ===
