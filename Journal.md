@@ -81,3 +81,10 @@
   - Undo state is reconfigured and reset by current difficulty when levels/maps are initialized.
   - Hard mode now consistently shows `U:N/A` and disables undo input after transitioning from earlier levels.
 
+- Remaining Tasks:
+  1. Checklist done
+  2. Demo Video
+  3. Self-evaluation and Peer evaluation
+  4. Add `creative and fun elements`: Animation, Chat Bubble
+  5. Schedule Next Meeting: 11 am
+  
