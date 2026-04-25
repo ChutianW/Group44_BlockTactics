@@ -76,7 +76,6 @@ void pushBox(int &box_row, int &box_col, int direction,
              const std::vector<std::pair<int, int>> &target_positions);
 
 // Input handling
-char getch();
 int parseDirection(char input);
 
 // Direction utilities
