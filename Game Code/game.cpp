@@ -336,6 +336,6 @@ int HardGame::getBoxCount() const {
 }
 
 void HardGame::getObstacleRange(int &min, int &max) const {
-    min = 6;
-    max = 10;  // Hard mode has 6-10 obstacles
+    min = 5;
+    max = 7;  // Hard mode has 5-7 obstacles (reduced from 6-10 for better solvability)
 }

@@ -28,7 +28,7 @@
 ### Three Difficulty Levels (Polymorphism)
 - **Easy**: 3 boxes, 0 obstacles, 5 undos allowed
 - **Medium**: 5 boxes, 3-5 obstacles, 3 undos allowed
-- **Hard**: 7 boxes, 6-10 obstacles, 0 undos (disabled)
+- **Hard**: 7 boxes, 5-7 obstacles, 0 undos (disabled)
 - Each difficulty implemented as a subclass of `Game` class using polymorphism
 
 ### Undo System

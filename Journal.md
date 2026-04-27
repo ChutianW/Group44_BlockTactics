@@ -39,7 +39,12 @@
   6. Problem fixed:Chinese characters in `cout` displayed as garbled text on Windows (Windows console uses GBK encoding by default, not UTF-8)
   7. Add FeatureChecklist.md. Plan out for feature bug detection.
 
-
-
+## Apr 27
+- Hard difficulty rebalance:
+  1. Reduced Hard obstacle range from 6-10 to 5-7 in `map.cpp` `getDifficultySettings()` and `game.cpp` `HardGame::getObstacleRange()`.
+  2. Reason: 10x10 map with 7 boxes + 7 targets + up to 10 obstacles produced too many unsolvable Hard maps; undo is disabled in Hard, so unsolvable starts were unrecoverable.
+  3. Result: more varied Hard maps, faster generation (less retry on dead-zone rejection), still challenging but reliably solvable.
+  4. UI / docs synced: difficulty menu (`renderer.cpp`), `README.md`, `PlayingGuideline.md`, `FeatureChecklist.md`.
+  5. Hard still shows U:N/A (undo disabled) — unchanged.
 
 

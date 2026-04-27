@@ -22,8 +22,8 @@ DifficultySettings getDifficultySettings(Difficulty diff) {
             break;
         case HARD:
             settings.num_boxes = 7;
-            settings.min_obstacles = 6;
-            settings.max_obstacles = 10;
+            settings.min_obstacles = 5;
+            settings.max_obstacles = 7;
             break;
         default:
             settings.num_boxes = 3;

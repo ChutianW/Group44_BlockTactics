@@ -279,26 +279,6 @@ bool movePlayer(Player &player, int direction,
 }
 
 // ============================================================
-// Cross-platform: read single char without Enter
-// Windows: _getch() from conio.h
-// Linux/macOS: termios-based implementation
-// ============================================================
-char getch() {
-#ifdef _WIN32
-    return _getch();
-#else
-    struct termios oldt, newt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    char ch = getchar();
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    return ch;
-#endif
-}
-
-// ============================================================
 // Parse keyboard input to direction
 //
 //   'W'/'w' -> DIR_UP

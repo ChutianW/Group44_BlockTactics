@@ -70,7 +70,7 @@
 |---|---------|-----------|------|
 | 30 | Easy: 3 boxes, 0 obstacles | Start Easy, count boxes and obstacles | [PASS] |
 | 31 | Medium: 5 boxes, 3-5 obstacles | Start Medium, count boxes and obstacles | [PASS] |
-| 32 | Hard: 7 boxes, 6-10 obstacles | Start Hard, count boxes and obstacles | [PASS] |
+| 32 | Hard: 7 boxes, 5-7 obstacles | Start Hard, count boxes and obstacles | [PASS] |
 | 33 | Each difficulty generates different maps | Play each twice, maps differ | [PASS] |
 | 34 | Difficulty persists after level completion | Complete Easy, still Easy | [PASS] |
 

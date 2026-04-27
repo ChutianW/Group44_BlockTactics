@@ -160,7 +160,7 @@ void Renderer::printDifficultyMenu() {
     std::cout << "  [2] " << COLOR_YELLOW << "Medium" << COLOR_RESET
               << " - 5 boxes, 3-5 obstacles\n";
     std::cout << "  [3] " << COLOR_RED << "Hard" << COLOR_RESET
-              << "   - 7 boxes, 6-10 obstacles\n";
+              << "   - 7 boxes, 5-7 obstacles\n";
     std::cout << "  [B] Back to menu\n\n";
     std::cout << "  Enter your choice: ";
 }

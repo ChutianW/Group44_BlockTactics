@@ -39,7 +39,7 @@ make
 ### Windows (Command Prompt)
 ```cmd
 cd "Game Code"
-g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp
+g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp terminal.cpp
 ```
 
 Press **Enter**.
@@ -122,7 +122,7 @@ Or double-click `blocktactics.exe` in File Explorer.
 
   [1] Easy   - 3 boxes, no obstacles
   [2] Medium - 5 boxes, 3-5 obstacles
-  [3] Hard   - 7 boxes, 6-10 obstacles
+  [3] Hard   - 7 boxes, 5-7 obstacles
   [B] Back to menu
 
   Enter your choice:
@@ -199,7 +199,7 @@ Or double-click `blocktactics.exe` in File Explorer.
 |-------|-------|-----------|------------|
 | Easy | 3 | 0 | 5 moves |
 | Medium | 5 | 3-5 | 3 moves |
-| Hard | 7 | 6-10 | 0 moves (Disabled) |
+| Hard | 7 | 5-7 | 0 moves (Disabled) |
 
 ---
 
@@ -246,7 +246,7 @@ make
 ### Windows (Command Prompt)
 ```cmd
 cd C:\path\to\Group44_BlockTactics\Game Code
-g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp
+g++ -std=c++17 -Wall -Wextra -o blocktactics.exe main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp terminal.cpp
 blocktactics.exe
 ```
 
