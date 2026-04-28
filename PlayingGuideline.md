@@ -57,7 +57,7 @@ Press **Enter**.
 
 ### Windows
 ```cmd
-blocktactics.exe
+./blocktactics.exe
 ```
 
 Or double-click `blocktactics.exe` in File Explorer.
@@ -269,7 +269,7 @@ blocktactics.exe
 
 - **Random Maps** - Every game generates a new puzzle
 - **Progress Saving** - Your best scores are saved automatically
-- **Undo System** - Made a mistake? Go back up to 50 moves (Easy mode)
+- **Undo System** - Made a mistake? Go back one step at a time (Easy: 5 undos, Medium: 3)
 - **Multiple Difficulties** - Easy, Medium, and Hard modes
 
 ---

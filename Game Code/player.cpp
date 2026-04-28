@@ -50,11 +50,11 @@ void UndoSystem::saveState(const std::vector<std::vector<char>> &grid, const Pla
     if (max_undos == 0) return;
 
     UndoState *state = new UndoState(grid, player.row, player.col, player.getSteps());
-    history.push(state);
+    history.push_back(state);
 
     while ((int)history.size() > max_undos) {
-        UndoState *old = history.top();
-        history.pop();
+        UndoState *old = history.front();
+        history.pop_front();
         delete old;
     }
 }
@@ -64,8 +64,8 @@ bool UndoSystem::undo(std::vector<std::vector<char>> &grid, Player &player) {
     if (!canUndo()) return false;
     if (history.empty()) return false;
 
-    UndoState *state = history.top();
-    history.pop();
+    UndoState *state = history.back();
+    history.pop_back();
 
     grid = state->grid;
     player.row = state->player_row;
@@ -80,12 +80,10 @@ bool UndoSystem::undo(std::vector<std::vector<char>> &grid, Player &player) {
 
 // Clear all history and free memory
 void UndoSystem::clear() {
-    while (!history.empty()) {
-        UndoState *state = history.top();
-        history.pop();
+    for (UndoState *state : history) {
         delete state;
     }
-    history = std::stack<UndoState *>();
+    history.clear();
 }
 
 bool UndoSystem::canUndo() const {
