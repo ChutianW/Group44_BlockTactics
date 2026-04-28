@@ -275,15 +275,10 @@ void Game::nextLevel() {
 // ============================================================================
 
 EasyGame::EasyGame(Renderer *renderer) : Game(EASY, renderer) {
-    // Reinitialize undo system with correct limit for Easy mode
-    undo_.reset(5);
+    undo_.reset(getUndoLimit());
 }
 
 EasyGame::~EasyGame() {}
-
-int EasyGame::getUndoLimit() const {
-    return 5;  // Easy mode has 5 undos
-}
 
 int EasyGame::getBoxCount() const {
     return 3;  // Easy mode has 3 boxes
@@ -299,14 +294,10 @@ void EasyGame::getObstacleRange(int &min, int &max) const {
 // ============================================================================
 
 MediumGame::MediumGame(Renderer *renderer) : Game(MEDIUM, renderer) {
-    undo_.reset(3);
+    undo_.reset(getUndoLimit());
 }
 
 MediumGame::~MediumGame() {}
-
-int MediumGame::getUndoLimit() const {
-    return 3;  // Medium mode has 3 undos
-}
 
 int MediumGame::getBoxCount() const {
     return 5;  // Medium mode has 5 boxes
@@ -322,14 +313,10 @@ void MediumGame::getObstacleRange(int &min, int &max) const {
 // ============================================================================
 
 HardGame::HardGame(Renderer *renderer) : Game(HARD, renderer) {
-    undo_.reset(0);
+    undo_.reset(getUndoLimit());
 }
 
 HardGame::~HardGame() {}
-
-int HardGame::getUndoLimit() const {
-    return 0;  // Hard mode has no undos
-}
 
 int HardGame::getBoxCount() const {
     return 7;  // Hard mode has 7 boxes

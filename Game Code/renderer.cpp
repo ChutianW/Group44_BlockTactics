@@ -288,24 +288,39 @@ void Renderer::printLeaderboard(const std::vector<LeaderboardEntry> &entries) {
 // Game status bar
 void Renderer::printGameStatus(Difficulty diff, int steps, int completed, int total,
                                 int undo_left, int undo_max) {
+    // Build plain content to measure visible width
+    std::string diff_str;
+    switch (diff) {
+        case EASY:   diff_str = "Easy  "; break;
+        case MEDIUM: diff_str = "Medium"; break;
+        case HARD:   diff_str = "Hard  "; break;
+    }
+    std::string undo_str = (undo_max == 0) ? "N/A"
+        : std::to_string(undo_left) + "/" + std::to_string(undo_max);
+    std::string plain = "  Difficulty: " + diff_str + " | Steps: "
+        + std::to_string(steps) + " | Target: " + std::to_string(completed)
+        + "/" + std::to_string(total) + " | U:" + undo_str + "  ";
+    int width = (int)plain.size();
+
+    // Print frame and colored content
     std::cout << COLOR_CYAN;
-    std::cout << "  +" << line(38, '=', "=") << "+\n";
-    std::cout << "  |  ";
-    std::cout << "Difficulty: ";
+    std::cout << "  +" << line(width, '=', "=") << "+\n";
+    std::cout << "  |";
+    std::cout << "  Difficulty: ";
     switch (diff) {
         case EASY:   std::cout << COLOR_GREEN << "Easy  " << COLOR_CYAN; break;
         case MEDIUM: std::cout << COLOR_YELLOW << "Medium" << COLOR_CYAN; break;
         case HARD:   std::cout << COLOR_RED << "Hard  " << COLOR_CYAN; break;
     }
     std::cout << " | Steps: " << COLOR_YELLOW << steps << COLOR_CYAN;
-    std::cout << " | " << completed << "/" << total;
+    std::cout << " | Target: " << completed << "/" << total;
     if (undo_max == 0) {
         std::cout << " | U:" << COLOR_GRAY << "N/A" << COLOR_CYAN;
     } else {
         std::cout << " | U:" << COLOR_YELLOW << undo_left << COLOR_CYAN << "/" << COLOR_YELLOW << undo_max << COLOR_CYAN;
     }
     std::cout << "  |\n";
-    std::cout << "  +" << line(38, '=', "=") << "+\n";
+    std::cout << "  +" << line(width, '=', "=") << "+\n";
     std::cout << COLOR_RESET;
 }
 

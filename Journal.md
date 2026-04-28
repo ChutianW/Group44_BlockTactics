@@ -47,4 +47,10 @@
   4. UI / docs synced: difficulty menu (`renderer.cpp`), `README.md`, `PlayingGuideline.md`, `FeatureChecklist.md`.
   5. Hard still shows U:N/A (undo disabled) — unchanged.
 
+## Apr 28
+- Fixed critical undo bug on Hard difficulty:
+  1. Bug: advancing from Easy/Medium to Hard via "Next Level" kept undo enabled (showed U:3/5 or U:5/5 instead of U:N/A).
+  2. Root cause: subclass overrides of `getUndoLimit()` returned hardcoded values (e.g. `MediumGame::getUndoLimit()` always returned 3), ignoring the updated `difficulty_` member after `nextLevel()` changed it to HARD.
+  3. Fix: removed `getUndoLimit()` overrides from `EasyGame`, `MediumGame`, `HardGame`. The base `Game::getUndoLimit()` already uses a switch on `difficulty_` and returns the correct limit (Easy=5, Medium=3, Hard=0). Polymorphism still demonstrated via `getBoxCount()` and `getObstacleRange()`.
+  4. Also fixed undo history data structure (stack→deque) so undo goes back one step instead of jumping to earliest state.
 
