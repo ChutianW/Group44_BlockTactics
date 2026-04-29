@@ -70,3 +70,9 @@
 - Win screen frame fix:
   1. Fixed `+` / `|` misalignment on the CONGRATULATIONS win screen — empty lines used width 42 but frame used width 40.
   2. All content lines now exactly 40 characters wide, matching the frame.
+
+- Code cleanup (compiler warnings cleared):
+  1. Removed unused variables in `map.cpp` `isDeadEndDeadlock()`: `leftBlocked`, `rightBlocked`, `upBlockedV`, `downBlockedV` (truly unused — redundant blockedness checks).
+  2. Replaced `behindRow` / `behindCol` with a TODO comment noting the planned player-position-aware pull-back check.
+  3. Removed unused parameter `unicode_ch` from `Renderer::line(int, char, const std::string&)`. Updated declaration in `renderer.h`, definition in `renderer.cpp`, and all 11 call sites (`boxTop`, `boxBottom`, `boxMiddle`, `boxEmpty`, `printGameStatus`, `printWinScreen`).
+  4. Result: full clean rebuild with `-Wall -Wextra` produces zero warnings.
