@@ -22,8 +22,8 @@ DifficultySettings getDifficultySettings(Difficulty diff) {
             break;
         case HARD:
             settings.num_boxes = 7;
-            settings.min_obstacles = 6;
-            settings.max_obstacles = 10;
+            settings.min_obstacles = 5;
+            settings.max_obstacles = 7;
             break;
         default:
             settings.num_boxes = 3;
@@ -305,22 +305,16 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
     // The corridor must have walls on both sides perpendicular to its direction
 
     // Check if this is a horizontal corridor
-    bool leftBlocked = isDirectionBlocked(grid, box_row, box_col, 0, -1);
-    bool rightBlocked = isDirectionBlocked(grid, box_row, box_col, 0, 1);
     bool upBlocked = isDirectionBlocked(grid, box_row, box_col, -1, 0);
     bool downBlocked = isDirectionBlocked(grid, box_row, box_col, 1, 0);
 
     // Horizontal dead-end: walls above and below, open on one side, blocked on other
     if (upBlocked && downBlocked) {
         // Horizontal corridor
-        int freeLeft = 0, freeRight = 0;
-        // Check how far we can go left/right while staying in corridor
         int leftCol = box_col - 1;
         while (leftCol > 0 && !isBlocked(grid[box_row][leftCol])) {
-            // Check if still in corridor
             if (isDirectionBlocked(grid, box_row, leftCol, -1, 0) &&
                 isDirectionBlocked(grid, box_row, leftCol, 1, 0)) {
-                freeLeft++;
             } else {
                 break;
             }
@@ -331,7 +325,6 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
         while (rightCol < MAP_COLS - 1 && !isBlocked(grid[box_row][rightCol])) {
             if (isDirectionBlocked(grid, box_row, rightCol, -1, 0) &&
                 isDirectionBlocked(grid, box_row, rightCol, 1, 0)) {
-                freeRight++;
             } else {
                 break;
             }
@@ -344,13 +337,9 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
 
         if ((leftOpen && !rightOpen) || (!leftOpen && rightOpen)) {
             // Box is at the blind end of a corridor
-            // Check if the box can be pulled back (player can get behind it)
-            int pullDir = leftOpen ? -1 : 1;
-            int behindRow = box_row;
-            int behindCol = box_col + pullDir;  // Direction to pull from
-
-            // The player needs to be on the opposite side to pull
-            // This is a simplified check - actual implementation may need player position
+            // TODO: Verify the box can actually be pulled back by checking player
+            // position relative to the corridor opening (pullDir = leftOpen ? -1 : 1).
+            // Current implementation conservatively flags this as a deadlock.
             return true;
         }
     }
@@ -358,17 +347,13 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
     // Vertical dead-end
     bool leftBlockedV = isDirectionBlocked(grid, box_row, box_col, 0, -1);
     bool rightBlockedV = isDirectionBlocked(grid, box_row, box_col, 0, 1);
-    bool upBlockedV = isDirectionBlocked(grid, box_row, box_col, -1, 0);
-    bool downBlockedV = isDirectionBlocked(grid, box_row, box_col, 1, 0);
 
     if (leftBlockedV && rightBlockedV) {
         // Vertical corridor
-        int freeUp = 0, freeDown = 0;
         int upRow = box_row - 1;
         while (upRow > 0 && !isBlocked(grid[upRow][box_col])) {
             if (isDirectionBlocked(grid, upRow, box_col, 0, -1) &&
                 isDirectionBlocked(grid, upRow, box_col, 0, 1)) {
-                freeUp++;
             } else {
                 break;
             }
@@ -379,7 +364,6 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
         while (downRow < MAP_ROWS - 1 && !isBlocked(grid[downRow][box_col])) {
             if (isDirectionBlocked(grid, downRow, box_col, 0, -1) &&
                 isDirectionBlocked(grid, downRow, box_col, 0, 1)) {
-                freeDown++;
             } else {
                 break;
             }

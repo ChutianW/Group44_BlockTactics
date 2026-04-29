@@ -39,7 +39,40 @@
   6. Problem fixed:Chinese characters in `cout` displayed as garbled text on Windows (Windows console uses GBK encoding by default, not UTF-8)
   7. Add FeatureChecklist.md. Plan out for feature bug detection.
 
+## Apr 27
+- Hard difficulty rebalance:
+  1. Reduced Hard obstacle range from 6-10 to 5-7 in `map.cpp` `getDifficultySettings()` and `game.cpp` `HardGame::getObstacleRange()`.
+  2. Reason: 10x10 map with 7 boxes + 7 targets + up to 10 obstacles produced too many unsolvable Hard maps; undo is disabled in Hard, so unsolvable starts were unrecoverable.
+  3. Result: more varied Hard maps, faster generation (less retry on dead-zone rejection), still challenging but reliably solvable.
+  4. UI / docs synced: difficulty menu (`renderer.cpp`), `README.md`, `PlayingGuideline.md`, `FeatureChecklist.md`.
+  5. Hard still shows U:N/A (undo disabled) — unchanged.
 
+## Apr 28
+- Fixed critical undo bug on Hard difficulty:
+  1. Bug: advancing from Easy/Medium to Hard via "Next Level" kept undo enabled (showed U:3/5 or U:5/5 instead of U:N/A).
+  2. Root cause: subclass overrides of `getUndoLimit()` returned hardcoded values (e.g. `MediumGame::getUndoLimit()` always returned 3), ignoring the updated `difficulty_` member after `nextLevel()` changed it to HARD.
+  3. Fix: removed `getUndoLimit()` overrides from `EasyGame`, `MediumGame`, `HardGame`. The base `Game::getUndoLimit()` already uses a switch on `difficulty_` and returns the correct limit (Easy=5, Medium=3, Hard=0). Polymorphism still demonstrated via `getBoxCount()` and `getObstacleRange()`.
+  4. Also fixed undo history data structure (stack→deque) so undo goes back one step instead of jumping to earliest state.
 
+## Apr 29
+- UI improvements:
+  1. Status bar frame now dynamically sized — `+` aligns with `|` on both sides regardless of content length.
+  2. Added `Target:` label before completed/total count (e.g. `Target: 0/5` instead of `0/5`).
+  3. Renamed main menu option `[3] View Controls` → `[3] Game Controls & Rules`.
 
+- New feature: Map Regeneration `[G]`
+  1. Press `[G]` during gameplay to discard the current map and generate a new one.
+  2. Reuses existing `generateNewMap()` — resets player position, step count, undo history, and target progress.
+  3. Keeps the same difficulty level.
+  4. Added `[G] New Map` to in-game hint line, controls screen (`G - Regenerate Map`), and quick help (`G = New Map`).
+  5. Files changed: `game.h` (declaration), `game.cpp` (handler + input case), `renderer.cpp` (UI updates).
 
+- Win screen frame fix:
+  1. Fixed `+` / `|` misalignment on the CONGRATULATIONS win screen — empty lines used width 42 but frame used width 40.
+  2. All content lines now exactly 40 characters wide, matching the frame.
+
+- Code cleanup (compiler warnings cleared):
+  1. Removed unused variables in `map.cpp` `isDeadEndDeadlock()`: `leftBlocked`, `rightBlocked`, `upBlockedV`, `downBlockedV` (truly unused — redundant blockedness checks).
+  2. Replaced `behindRow` / `behindCol` with a TODO comment noting the planned player-position-aware pull-back check.
+  3. Removed unused parameter `unicode_ch` from `Renderer::line(int, char, const std::string&)`. Updated declaration in `renderer.h`, definition in `renderer.cpp`, and all 11 call sites (`boxTop`, `boxBottom`, `boxMiddle`, `boxEmpty`, `printGameStatus`, `printWinScreen`).
+  4. Result: full clean rebuild with `-Wall -Wextra` produces zero warnings.

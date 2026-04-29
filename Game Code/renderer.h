@@ -57,7 +57,7 @@ private:
     RenderMode render_mode;
 
     const std::string &on(const std::string &code) const;
-    std::string line(int width, char ascii_ch, const std::string &unicode_ch) const;
+    std::string line(int width, char ascii_ch) const;
     std::string boxTop(int width) const;
     std::string boxBottom(int width) const;
     std::string boxMiddle(int width) const;

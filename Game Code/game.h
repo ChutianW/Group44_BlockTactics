@@ -64,6 +64,7 @@ protected:
     void handleMovement(char direction);
     void handleRestart();
     void handleUndo();
+    void handleRegenerate();
     void handleHelp();
     void handleQuit();
 
@@ -80,7 +81,6 @@ public:
     EasyGame(Renderer *renderer);
     virtual ~EasyGame();
 
-    int getUndoLimit() const override;
     int getBoxCount() const override;
     void getObstacleRange(int &min, int &max) const override;
 };
@@ -93,7 +93,6 @@ public:
     MediumGame(Renderer *renderer);
     virtual ~MediumGame();
 
-    int getUndoLimit() const override;
     int getBoxCount() const override;
     void getObstacleRange(int &min, int &max) const override;
 };
@@ -106,7 +105,6 @@ public:
     HardGame(Renderer *renderer);
     virtual ~HardGame();
 
-    int getUndoLimit() const override;
     int getBoxCount() const override;
     void getObstacleRange(int &min, int &max) const override;
 };

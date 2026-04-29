@@ -2,7 +2,7 @@
 #define PLAYER_H
 
 #include "map.h"
-#include <stack>
+#include <deque>
 
 // Player struct - position and steps
 struct Player {
@@ -41,7 +41,7 @@ struct UndoState {
 // Undo restores position but not steps, consumes one undo
 class UndoSystem {
 private:
-    std::stack<UndoState *> history;
+    std::deque<UndoState *> history;
     int undos_left;
     int max_undos;
     bool used_undo;
