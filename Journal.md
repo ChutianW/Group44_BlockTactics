@@ -66,3 +66,7 @@
   3. Keeps the same difficulty level.
   4. Added `[G] New Map` to in-game hint line, controls screen (`G - Regenerate Map`), and quick help (`G = New Map`).
   5. Files changed: `game.h` (declaration), `game.cpp` (handler + input case), `renderer.cpp` (UI updates).
+
+- Win screen frame fix:
+  1. Fixed `+` / `|` misalignment on the CONGRATULATIONS win screen — empty lines used width 42 but frame used width 40.
+  2. All content lines now exactly 40 characters wide, matching the frame.

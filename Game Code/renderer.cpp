@@ -430,11 +430,11 @@ void Renderer::printWinScreen(int steps, const UserData &user, Difficulty diff) 
     std::cout << COLOR_BRIGHT_GREEN << COLOR_BOLD;
     std::cout << "\n";
     std::cout << "  +" << line(40, '=', "=") << "+\n";
-    std::cout << "  |" << line(42, ' ', " ") << "|\n";
-    std::cout << "  |      CONGRATULATIONS!              |\n";
-    std::cout << "  |" << line(42, ' ', " ") << "|\n";
-    std::cout << "  |         Level Complete!             |\n";
-    std::cout << "  |" << line(42, ' ', " ") << "|\n";
+    std::cout << "  |" << line(40, ' ', " ") << "|\n";
+    std::cout << "  |           CONGRATULATIONS!             |\n";
+    std::cout << "  |" << line(40, ' ', " ") << "|\n";
+    std::cout << "  |            Level Complete!             |\n";
+    std::cout << "  |" << line(40, ' ', " ") << "|\n";
     std::cout << "  +" << line(40, '=', "=") << "+\n";
     std::cout << COLOR_RESET << "\n";
 
