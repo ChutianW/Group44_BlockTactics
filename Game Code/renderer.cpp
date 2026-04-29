@@ -140,7 +140,7 @@ void Renderer::printMenu() {
     std::cout << COLOR_RESET;
     std::cout << "  [1] New Game\n";
     std::cout << "  [2] Continue (from saved progress)\n";
-    std::cout << "  [3] View Controls\n";
+    std::cout << "  [3] Game Controls & Rules\n";
     std::cout << "  [4] View Progress\n";
     std::cout << "  [5] Toggle Colors\n";
     std::cout << "  [L] Leaderboard\n";
@@ -181,6 +181,7 @@ void Renderer::printControls() {
     std::cout << "  " << COLOR_BOLD << "Actions:" << COLOR_RESET << "\n";
     std::cout << "    R - Restart Level\n";
     std::cout << "    U - Undo Last Move\n";
+    std::cout << "    G - Regenerate Map\n";
     std::cout << "    H - Show Help\n";
     std::cout << "    Q - Quit to Menu\n\n";
 
@@ -415,7 +416,7 @@ void Renderer::printHelp() {
     std::cout << "  " << menuBorder(" QUICK HELP ") << "\n";
     std::cout << COLOR_RESET;
     std::cout << "  W/A/S/D = Move | R = Restart | U = Undo\n";
-    std::cout << "  Q = Quit to Menu | H = This help\n";
+    std::cout << "  G = New Map | Q = Quit to Menu | H = This help\n";
     std::cout << "  Goal: Push all " << COLOR_RED << "$" << COLOR_RESET
               << " onto " << COLOR_GREEN << "^" << COLOR_RESET << "\n";
     std::cout << COLOR_CYAN;

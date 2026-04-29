@@ -64,6 +64,7 @@ protected:
     void handleMovement(char direction);
     void handleRestart();
     void handleUndo();
+    void handleRegenerate();
     void handleHelp();
     void handleQuit();
 

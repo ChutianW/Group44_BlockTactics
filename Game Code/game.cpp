@@ -106,7 +106,7 @@ void Game::run() {
         renderer_->printMap(grid_, targets_, player_.row, player_.col);
 
         // 4. Operation hints
-        std::cout << "  [W/A/S/D] Move | [R] Restart | [U] Undo | [H] Help | [Q] Quit\n";
+        std::cout << "  [W/A/S/D] Move | [R] Restart | [U] Undo | [G] New Map | [H] Help | [Q] Quit\n";
 
         // 5. Read input
         char input = renderer_->getInput();
@@ -150,6 +150,9 @@ void Game::processInput(char input) {
         case 'u':
             handleUndo();
             break;
+        case 'g':
+            handleRegenerate();
+            break;
         case 'h':
             handleHelp();
             break;
@@ -178,6 +181,13 @@ void Game::handleUndo() {
     if (undo_.canUndo()) {
         undo_.undo(grid_, player_);
     }
+}
+
+// Handle map regeneration
+void Game::handleRegenerate() {
+    generateNewMap();
+    level_complete_ = false;
+    std::cout << "\n  New map generated.\n";
 }
 
 // Handle help
