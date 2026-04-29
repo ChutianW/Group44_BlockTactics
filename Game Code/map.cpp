@@ -305,8 +305,6 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
     // The corridor must have walls on both sides perpendicular to its direction
 
     // Check if this is a horizontal corridor
-    bool leftBlocked = isDirectionBlocked(grid, box_row, box_col, 0, -1);
-    bool rightBlocked = isDirectionBlocked(grid, box_row, box_col, 0, 1);
     bool upBlocked = isDirectionBlocked(grid, box_row, box_col, -1, 0);
     bool downBlocked = isDirectionBlocked(grid, box_row, box_col, 1, 0);
 
@@ -344,13 +342,9 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
 
         if ((leftOpen && !rightOpen) || (!leftOpen && rightOpen)) {
             // Box is at the blind end of a corridor
-            // Check if the box can be pulled back (player can get behind it)
-            int pullDir = leftOpen ? -1 : 1;
-            int behindRow = box_row;
-            int behindCol = box_col + pullDir;  // Direction to pull from
-
-            // The player needs to be on the opposite side to pull
-            // This is a simplified check - actual implementation may need player position
+            // TODO: Verify the box can actually be pulled back by checking player
+            // position relative to the corridor opening (pullDir = leftOpen ? -1 : 1).
+            // Current implementation conservatively flags this as a deadlock.
             return true;
         }
     }
@@ -358,8 +352,6 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
     // Vertical dead-end
     bool leftBlockedV = isDirectionBlocked(grid, box_row, box_col, 0, -1);
     bool rightBlockedV = isDirectionBlocked(grid, box_row, box_col, 0, 1);
-    bool upBlockedV = isDirectionBlocked(grid, box_row, box_col, -1, 0);
-    bool downBlockedV = isDirectionBlocked(grid, box_row, box_col, 1, 0);
 
     if (leftBlockedV && rightBlockedV) {
         // Vertical corridor
