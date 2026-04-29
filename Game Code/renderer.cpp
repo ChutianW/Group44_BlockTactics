@@ -27,24 +27,24 @@ const std::string &Renderer::on(const std::string &code) const {
     return color_enabled ? code : empty;
 }
 
-std::string Renderer::line(int width, char ascii_ch, const std::string &unicode_ch) const {
+std::string Renderer::line(int width, char ascii_ch) const {
     return std::string(width, ascii_ch);
 }
 
 std::string Renderer::boxTop(int width) const {
-    return "  +" + line(width, '-', "-") + "+";
+    return "  +" + line(width, '-') + "+";
 }
 
 std::string Renderer::boxBottom(int width) const {
-    return "  +" + line(width, '-', "-") + "+";
+    return "  +" + line(width, '-') + "+";
 }
 
 std::string Renderer::boxMiddle(int width) const {
-    return "  " + line(width, '=', "=");
+    return "  " + line(width, '=');
 }
 
 std::string Renderer::boxEmpty(int width) const {
-    return "  |" + line(width, ' ', " ") + "|";
+    return "  |" + line(width, ' ') + "|";
 }
 
 std::string Renderer::boxRow(const std::string &content, int width) const {
@@ -305,7 +305,7 @@ void Renderer::printGameStatus(Difficulty diff, int steps, int completed, int to
 
     // Print frame and colored content
     std::cout << COLOR_CYAN;
-    std::cout << "  +" << line(width, '=', "=") << "+\n";
+    std::cout << "  +" << line(width, '=') << "+\n";
     std::cout << "  |";
     std::cout << "  Difficulty: ";
     switch (diff) {
@@ -321,7 +321,7 @@ void Renderer::printGameStatus(Difficulty diff, int steps, int completed, int to
         std::cout << " | U:" << COLOR_YELLOW << undo_left << COLOR_CYAN << "/" << COLOR_YELLOW << undo_max << COLOR_CYAN;
     }
     std::cout << "  |\n";
-    std::cout << "  +" << line(width, '=', "=") << "+\n";
+    std::cout << "  +" << line(width, '=') << "+\n";
     std::cout << COLOR_RESET;
 }
 
@@ -429,13 +429,13 @@ void Renderer::printWinScreen(int steps, const UserData &user, Difficulty diff) 
     clearScreen();
     std::cout << COLOR_BRIGHT_GREEN << COLOR_BOLD;
     std::cout << "\n";
-    std::cout << "  +" << line(40, '=', "=") << "+\n";
-    std::cout << "  |" << line(40, ' ', " ") << "|\n";
+    std::cout << "  +" << line(40, '=') << "+\n";
+    std::cout << "  |" << line(40, ' ') << "|\n";
     std::cout << "  |           CONGRATULATIONS!             |\n";
-    std::cout << "  |" << line(40, ' ', " ") << "|\n";
+    std::cout << "  |" << line(40, ' ') << "|\n";
     std::cout << "  |            Level Complete!             |\n";
-    std::cout << "  |" << line(40, ' ', " ") << "|\n";
-    std::cout << "  +" << line(40, '=', "=") << "+\n";
+    std::cout << "  |" << line(40, ' ') << "|\n";
+    std::cout << "  +" << line(40, '=') << "+\n";
     std::cout << COLOR_RESET << "\n";
 
     std::cout << "  Steps taken: " << COLOR_YELLOW << steps << COLOR_RESET << "\n\n";
