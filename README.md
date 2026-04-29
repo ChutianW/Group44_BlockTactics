@@ -72,30 +72,99 @@
 
 ## Coding Elements and Feature Support
 
-### 1. OOP Encapsulation
-**Files:** `game.h`, `player.h`, `map.h`, `file_io.h`
+### 1. Generation of Random Events
+**Files:** `map.cpp`, `main.cpp`
 
-The `Game` class encapsulates all game state:
-- Private members: `grid_`, `player_`, `undo_`, `user_` are not directly accessible
-- Public interface: `run()`, `startGame()`, `restart()`, `setUserData()`
-- Internal state protection ensures consistent game behavior
+Random events drive map generation and game replayability:
+- `srand(time(nullptr))` seeds the random number generator
+- `rand() %` used to randomly place obstacles, boxes, targets, and player
+- Each new game generates a unique puzzle layout
+- Fallback to fixed test map if random generation fails 50 times
 
-**Example in `game.h`:**
+**Example in `map.cpp`:**
 ```cpp
-private:
-    std::vector<std::vector<char>> grid_;
-    std::vector<std::pair<int, int>> targets_;
-    Player player_;
-    UndoSystem undo_;
+srand(static_cast<unsigned int>(time(nullptr)));
+
+int box_x = 2 + rand() % (MAP_COLS - 4);
+int box_y = 2 + rand() % (MAP_ROWS - 4);
+
+int num_obstacles = settings.min_obstacles +
+                    rand() % (settings.max_obstacles - settings.min_obstacles + 1);
 ```
 
-### 2. OOP Polymorphism
+### 2. Data Structures for Storing Data
+**Files:** `game.h`, `player.h`, `map.h`, `file_io.h`
+
+Multiple data structures store game state:
+- `std::vector<std::vector<char>>` - 2D grid map representation
+- `std::vector<std::pair<int, int>>` - target positions list
+- `std::stack<UndoState *>` - undo history stack
+- `std::vector<LeaderboardEntry>` - sorted leaderboard
+
+**Example in `map.h`:**
+```cpp
+struct GameState {
+    std::vector<std::vector<char>> grid;
+    std::vector<std::pair<int, int>> targets;
+    int player_row;
+    int player_col;
+    int step_count;
+};
+```
+
+### 3. Dynamic Memory Management
+**Files:** `player.h`, `player.cpp`
+
+The `UndoSystem` class manages heap-allocated `UndoState` objects:
+- `saveState()` allocates new `UndoState` on the heap with `new`
+- `undo()` pops and deletes from stack with `delete`
+- `clear()` deletes all remaining states
+- Destructor ensures no memory leaks
+
+**Example in `player.h`:**
+```cpp
+class UndoSystem {
+    std::stack<UndoState *> history;  // heap-allocated objects
+public:
+    ~UndoSystem();  // destructor cleans up
+    void saveState(const std::vector<std::vector<char>>&, const Player&);
+    bool undo(std::vector<std::vector<char>>&, Player&);
+};
+```
+
+### 4. File Input/Output
+**Files:** `file_io.h`, `file_io.cpp`
+
+User progress and leaderboard data persisted to text files:
+- `saveUserData()` - writes user data to `data/user_data.txt`
+- `loadUserData()` - reads existing user data
+- `userExists()` - checks if username already registered
+- `getLeaderboard()` - sorts and returns top players
+
+**Data format in `data/user_data.txt`:**
+```
+username highest_level best_steps_easy best_steps_medium best_steps_hard total_undos_easy total_undos_medium total_undos_hard created_at
+```
+
+### 5. Program Codes in Multiple Files
+**Files:** `main.cpp`, `game.h/cpp`, `player.h/cpp`, `map.h/cpp`, `renderer.h/cpp`, `file_io.h/cpp`, `terminal.h/cpp`
+
+The project is split into 8 source files, each with a specific responsibility:
+- `main.cpp` - entry point and menu handling
+- `game.h/cpp` - core game logic and difficulty classes
+- `player.h/cpp` - player movement and undo system
+- `map.h/cpp` - map generation and validation
+- `renderer.h/cpp` - display rendering
+- `file_io.h/cpp` - file persistence
+- `terminal.h/cpp` - terminal capability detection
+
+### 6. Multiple Difficulty Levels
 **Files:** `game.h`, `game.cpp`
 
-Three difficulty subclasses override base `Game` methods:
-- `EasyGame`, `MediumGame`, `HardGame` inherit from `Game`
-- `getUndoLimit()`, `getBoxCount()`, `getObstacleRange()` are virtual functions
-- Each subclass provides different behavior for the same interface
+Three difficulty subclasses implement polymorphism:
+- `EasyGame` - 3 boxes, 0 obstacles, 5 undos
+- `MediumGame` - 5 boxes, 3-5 obstacles, 3 undos
+- `HardGame` - 7 boxes, 6-10 obstacles, 0 undos
 
 **Example in `game.h`:**
 ```cpp
@@ -113,59 +182,6 @@ class MediumGame : public Game {
 };
 class HardGame : public Game {
     int getUndoLimit() const override;  // returns 0
-};
-```
-
-### 3. Composition
-**Files:** `game.h`, `player.h`, `renderer.h`
-
-The `Game` class uses composition to hold multiple objects:
-- `Renderer *renderer_` - handles all display logic
-- `Player player_` - manages player position and steps
-- `UndoSystem undo_` - manages undo history stack
-
-**Example in `game.h`:**
-```cpp
-class Game {
-    Renderer *renderer_;
-    Player player_;
-    UndoSystem undo_;
-};
-```
-
-The `Renderer` class further demonstrates composition by managing display state.
-
-### 4. File Input/Output
-**Files:** `file_io.h`, `file_io.cpp`
-
-User progress and leaderboard data persisted to text files:
-- `saveUserData()` - writes user data to `data/user_data.txt`
-- `loadUserData()` - reads existing user data
-- `userExists()` - checks if username already registered
-- `getLeaderboard()` - sorts and returns top players
-
-**Data format in `data/user_data.txt`:**
-```
-username highest_level best_steps_easy best_steps_medium best_steps_hard total_undos_easy total_undos_medium total_undos_hard created_at
-```
-
-### 5. Dynamic Memory Management
-**Files:** `player.h`, `player.cpp`
-
-The `UndoSystem` class manages a stack of heap-allocated `UndoState` objects:
-- `saveState()` allocates new `UndoState` on the heap
-- `undo()` pops and deletes from stack
-- `clear()` deletes all remaining states
-- Destructor ensures no memory leaks
-
-**Example in `player.h`:**
-```cpp
-class UndoSystem {
-    std::stack<UndoState *> history;  // heap-allocated objects
-public:
-    ~UndoSystem();  // destructor cleans up
-    void saveState(const std::vector<std::vector<char>>&, const Player&);
-    bool undo(std::vector<std::vector<char>>&, Player&);
 };
 ```
 

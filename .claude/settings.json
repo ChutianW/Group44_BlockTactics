@@ -1,10 +1,30 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(g++ -std=c++17 -c player.cpp -o player.o)",
+      "Bash(g++ -std=c++17 -c renderer.cpp -o renderer.o)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(g++ -std=c++17 -c main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp terminal.cpp -o /dev/null)",
+      "Bash(g++ -std=c++17 -c main.cpp -o main.o)",
+      "Bash(g++ -std=c++17 -c map.cpp -o map.o)",
+      "Bash(g++ -std=c++17 -c file_io.cpp -o file_io.o)",
+      "Bash(g++ -std=c++17 -c game.cpp -o game.o)",
+      "Bash(g++ -std=c++17 -c terminal.cpp -o terminal.o)",
+      "mcp__web-reader__webReader",
+      "WebFetch(domain:www.doubao.com)",
+      "mcp__zai-mcp-server__analyze_image",
+      "Bash(make clean *)",
+      "Bash(make)",
+      "Bash(rm -f blocktactics)",
+      "Bash(git remote *)",
+      "Bash(git config *)",
+      "Bash(GIT_ASKPASS=true git push)"
     ],
     "additionalDirectories": [
-      "/Users/tinawang/cpp_4_starter/COMP2113/gp/Group44_BlockTactics"
+      "/Users/tinawang/cpp_4_starter/COMP2113/gp/Group44_BlockTactics",
+      "/Users/tinawang/cpp_4_starter/COMP2113/gp/Group44_BlockTactics/Game Code"
     ]
   }
 }
