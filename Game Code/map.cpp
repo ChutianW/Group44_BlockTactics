@@ -311,14 +311,10 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
     // Horizontal dead-end: walls above and below, open on one side, blocked on other
     if (upBlocked && downBlocked) {
         // Horizontal corridor
-        int freeLeft = 0, freeRight = 0;
-        // Check how far we can go left/right while staying in corridor
         int leftCol = box_col - 1;
         while (leftCol > 0 && !isBlocked(grid[box_row][leftCol])) {
-            // Check if still in corridor
             if (isDirectionBlocked(grid, box_row, leftCol, -1, 0) &&
                 isDirectionBlocked(grid, box_row, leftCol, 1, 0)) {
-                freeLeft++;
             } else {
                 break;
             }
@@ -329,7 +325,6 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
         while (rightCol < MAP_COLS - 1 && !isBlocked(grid[box_row][rightCol])) {
             if (isDirectionBlocked(grid, box_row, rightCol, -1, 0) &&
                 isDirectionBlocked(grid, box_row, rightCol, 1, 0)) {
-                freeRight++;
             } else {
                 break;
             }
@@ -355,12 +350,10 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
 
     if (leftBlockedV && rightBlockedV) {
         // Vertical corridor
-        int freeUp = 0, freeDown = 0;
         int upRow = box_row - 1;
         while (upRow > 0 && !isBlocked(grid[upRow][box_col])) {
             if (isDirectionBlocked(grid, upRow, box_col, 0, -1) &&
                 isDirectionBlocked(grid, upRow, box_col, 0, 1)) {
-                freeUp++;
             } else {
                 break;
             }
@@ -371,7 +364,6 @@ bool isDeadEndDeadlock(const std::vector<std::vector<char>> &grid, int box_row, 
         while (downRow < MAP_ROWS - 1 && !isBlocked(grid[downRow][box_col])) {
             if (isDirectionBlocked(grid, downRow, box_col, 0, -1) &&
                 isDirectionBlocked(grid, downRow, box_col, 0, 1)) {
-                freeDown++;
             } else {
                 break;
             }

@@ -3,7 +3,11 @@
 
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra
+ifeq ($(OS),Windows_NT)
 TARGET = blocktactics.exe
+else
+TARGET = blocktactics
+endif
 
 SRCS = main.cpp map.cpp player.cpp file_io.cpp renderer.cpp game.cpp terminal.cpp
 OBJS = $(SRCS:.cpp=.o)
