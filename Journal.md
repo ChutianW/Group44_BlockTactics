@@ -54,3 +54,15 @@
   3. Fix: removed `getUndoLimit()` overrides from `EasyGame`, `MediumGame`, `HardGame`. The base `Game::getUndoLimit()` already uses a switch on `difficulty_` and returns the correct limit (Easy=5, Medium=3, Hard=0). Polymorphism still demonstrated via `getBoxCount()` and `getObstacleRange()`.
   4. Also fixed undo history data structure (stack→deque) so undo goes back one step instead of jumping to earliest state.
 
+## Apr 29
+- UI improvements:
+  1. Status bar frame now dynamically sized — `+` aligns with `|` on both sides regardless of content length.
+  2. Added `Target:` label before completed/total count (e.g. `Target: 0/5` instead of `0/5`).
+  3. Renamed main menu option `[3] View Controls` → `[3] Game Controls & Rules`.
+
+- New feature: Map Regeneration `[G]`
+  1. Press `[G]` during gameplay to discard the current map and generate a new one.
+  2. Reuses existing `generateNewMap()` — resets player position, step count, undo history, and target progress.
+  3. Keeps the same difficulty level.
+  4. Added `[G] New Map` to in-game hint line, controls screen (`G - Regenerate Map`), and quick help (`G = New Map`).
+  5. Files changed: `game.h` (declaration), `game.cpp` (handler + input case), `renderer.cpp` (UI updates).
