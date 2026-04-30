@@ -5,33 +5,54 @@
 #include <algorithm>
 #include <ctime>
 
-// ============================================================
-// UserData constructors
-// ============================================================
-
+/*
+ * Function: UserData::UserData (default constructor)
+ * Purpose:  Initializes a UserData object with empty username and all stats at 0.
+ * Inputs:   None.
+ * Output:   A UserData with username="", highest_level=1, all step/undo counts 0,
+ *           and created_at=0.
+ */
 UserData::UserData()
     : username(""), highest_level(1), best_steps_easy(0),
       best_steps_medium(0), best_steps_hard(0),
       total_undos_easy(0), total_undos_medium(0), total_undos_hard(0), created_at(0) {}
 
+/*
+ * Function: UserData::UserData (named constructor)
+ * Purpose:  Creates a new UserData for a first-time user with the given username.
+ *           Sets created_at to the current system time.
+ * Inputs:   name - the username string for the new user.
+ * Output:   A UserData with the given username, highest_level=1, all stats at 0,
+ *           and created_at set to the current Unix timestamp.
+ */
 UserData::UserData(const std::string &name)
     : username(name), highest_level(1), best_steps_easy(0),
       best_steps_medium(0), best_steps_hard(0),
       total_undos_easy(0), total_undos_medium(0), total_undos_hard(0), created_at(time(nullptr)) {}
 
-// ============================================================
-// Create new user
-// ============================================================
+/*
+ * Function: createNewUser
+ * Purpose:  Factory function that creates and returns a new UserData for a player
+ *           who is registering for the first time.
+ * Inputs:   username - the player's chosen username string.
+ * Output:   Returns a UserData constructed via UserData(username) with all
+ *           stats initialized to zero and created_at set to current time.
+ */
 UserData createNewUser(const std::string &username) {
     return UserData(username);
 }
 
-// ============================================================
-// Save user data to file
-// Format (one user per line):
-//   username highest_level easy_steps medium_steps hard_steps easy_undos medium_undos hard_undos
-// Example: Alice 3 45 78 120 12 8 0
-// ============================================================
+/*
+ * Function: saveUserData
+ * Purpose:  Persists a UserData record to the data file. If the user already
+ *           exists, their record is updated in place; otherwise it is appended.
+ *           File format (one user per line):
+ *           username highest_level easy_steps medium_steps hard_steps
+ *           easy_undos medium_undos hard_undos created_at
+ * Inputs:   data     - the UserData object to save.
+ *           filename - path to the data file (default: data/user_data.txt).
+ * Output:   Returns true if the file was written successfully; false on I/O error.
+ */
 bool saveUserData(const UserData &data, const std::string &filename) {
     std::vector<UserData> all_users = loadAllUsers(filename);
 
@@ -69,9 +90,15 @@ bool saveUserData(const UserData &data, const std::string &filename) {
     return true;
 }
 
-// ============================================================
-// Load user data from file
-// ============================================================
+/*
+ * Function: loadUserData
+ * Purpose:  Reads a single user's data record from the data file by username.
+ * Inputs:   username - the username to search for.
+ *           data     - output parameter filled with the loaded UserData.
+ *           filename - path to the data file (default: data/user_data.txt).
+ * Output:   Returns true and populates data if the user is found.
+ *           Returns false if the file cannot be opened or the user is not found.
+ */
 bool loadUserData(const std::string &username, UserData &data, const std::string &filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -103,9 +130,14 @@ bool loadUserData(const std::string &username, UserData &data, const std::string
     return false;
 }
 
-// ============================================================
-// Check if username exists
-// ============================================================
+/*
+ * Function: userExists
+ * Purpose:  Checks whether a given username already has a record in the data file.
+ *           Used during login to distinguish new vs. returning users.
+ * Inputs:   username - the username to search for.
+ *           filename - path to the data file (default: data/user_data.txt).
+ * Output:   Returns true if a matching username line is found; false otherwise.
+ */
 bool userExists(const std::string &username, const std::string &filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -127,9 +159,14 @@ bool userExists(const std::string &username, const std::string &filename) {
     return false;
 }
 
-// ============================================================
-// Load all users (used by saveUserData for update logic)
-// ============================================================
+/*
+ * Function: loadAllUsers
+ * Purpose:  Reads all user records from the data file into a vector.
+ *           Used internally by saveUserData to perform an in-place update.
+ * Inputs:   filename - path to the data file (default: data/user_data.txt).
+ * Output:   Returns a vector of UserData objects for every valid line in the file.
+ *           Returns an empty vector if the file cannot be opened.
+ */
 std::vector<UserData> loadAllUsers(const std::string &filename) {
     std::vector<UserData> users;
     std::ifstream file(filename);
@@ -163,10 +200,15 @@ std::vector<UserData> loadAllUsers(const std::string &filename) {
     return users;
 }
 
-// ============================================================
-// Save game state (mid-game save)
-// Format: level steps
-// ============================================================
+/*
+ * Function: saveGame
+ * Purpose:  Writes a minimal mid-game checkpoint (level and step count) to a file.
+ *           Format: "level steps" on a single line.
+ * Inputs:   filename - path to the checkpoint file.
+ *           level    - the current difficulty level as an integer.
+ *           steps    - the current step count to save.
+ * Output:   Returns true if the file was written successfully; false on I/O error.
+ */
 bool saveGame(const std::string &filename, int level, int steps) {
     std::ofstream file(filename);
     if (!file.is_open()) {
@@ -178,9 +220,15 @@ bool saveGame(const std::string &filename, int level, int steps) {
     return true;
 }
 
-// ============================================================
-// Load game state (continue saved progress)
-// ============================================================
+/*
+ * Function: loadGame
+ * Purpose:  Reads a previously saved game checkpoint file to restore level and steps.
+ * Inputs:   filename - path to the checkpoint file to read.
+ *           level    - output parameter set to the saved difficulty level.
+ *           steps    - output parameter set to the saved step count.
+ * Output:   Returns true and populates level and steps if successful.
+ *           Returns false if the file cannot be opened.
+ */
 bool loadGame(const std::string &filename, int &level, int &steps) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -192,10 +240,15 @@ bool loadGame(const std::string &filename, int &level, int &steps) {
     return true;
 }
 
-// ============================================================
-// Get leaderboard data
-// Sort: difficulty DESC, (steps+undos) ASC
-// ============================================================
+/*
+ * Function: getLeaderboard
+ * Purpose:  Builds and returns a sorted leaderboard from all user records.
+ *           Each user contributes one entry per difficulty level they have completed.
+ *           Sort order: difficulty DESC (Hard first), then (steps + undos) ASC,
+ *           then creation date ASC as a tiebreaker.
+ * Inputs:   filename - path to the data file (default: data/user_data.txt).
+ * Output:   Returns a sorted vector of LeaderboardEntry structs ready for display.
+ */
 std::vector<LeaderboardEntry> getLeaderboard(const std::string &filename) {
     std::vector<LeaderboardEntry> entries;
     std::vector<UserData> users = loadAllUsers(filename);

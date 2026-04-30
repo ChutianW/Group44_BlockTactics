@@ -10,19 +10,29 @@
 #include "game.h"
 #include "terminal.h"
 
-// ===============================================================================
-// Windows UTF-8 initialization
-// ===============================================================================
+/*
+ * Function: initWindowsUTF8
+ * Purpose:  Sets the Windows console output code page to UTF-8 (65001) so that
+ *           Unicode characters display correctly in the Windows terminal.
+ *           Has no effect on non-Windows platforms (compiled out by preprocessor).
+ * Inputs:   None.
+ * Output:   Runs "chcp 65001 > nul" via system() on Windows; no-op elsewhere.
+ */
 void initWindowsUTF8() {
     #if defined(_WIN32) || defined(WIN32)
         system("chcp 65001 > nul");
     #endif
 }
 
-// ===============================================================================
-// Main - Game entry point (delegates to Game and Renderer classes)
-// OOP: game logic in Game, display in Renderer
-// ===============================================================================
+/*
+ * Function: main
+ * Purpose:  Program entry point. Initializes the terminal, random seed, and renderer,
+ *           handles user login/registration, then runs the main menu loop.
+ *           Creates the appropriate Game subclass (EasyGame/MediumGame/HardGame)
+ *           based on the player's selection and manages the overall session lifecycle.
+ * Inputs:   None (command-line arguments not used).
+ * Output:   Returns 0 on clean exit. Saves user data on quit and prints goodbye screen.
+ */
 int main() {
     // Initialize Windows console to UTF-8
     initWindowsUTF8();

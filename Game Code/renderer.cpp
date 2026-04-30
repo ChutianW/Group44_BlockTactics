@@ -11,42 +11,101 @@
 #include <iomanip>
 #include <ctime>
 
-// ===============================================================================
-// Renderer base class implementation
-// ===============================================================================
-
+/*
+ * Function: Renderer::Renderer (constructor)
+ * Purpose:  Initializes the renderer with color support and render mode settings.
+ *           Color is only enabled if both color_enabled and ansi_color_supported are true.
+ * Inputs:   color_enabled        - whether the user wants colors on.
+ *           render_mode          - ASCII or UNICODE rendering mode.
+ *           ansi_color_supported - whether the terminal actually supports ANSI codes.
+ * Output:   A Renderer ready to draw the game UI.
+ */
 Renderer::Renderer(bool color_enabled, RenderMode render_mode, bool ansi_color_supported)
     : color_enabled(color_enabled && ansi_color_supported),
       ansi_color_supported(ansi_color_supported),
       render_mode(render_mode) {}
 
+/*
+ * Function: Renderer::~Renderer (destructor)
+ * Purpose:  Cleans up the Renderer instance (no dynamic allocations in base class).
+ * Inputs:   None.
+ * Output:   No side effects beyond standard object teardown.
+ */
 Renderer::~Renderer() {}
 
+/*
+ * Function: Renderer::on
+ * Purpose:  Returns an ANSI color code if color output is enabled; empty string if not.
+ *           Used to conditionally wrap output in color codes without extra branching.
+ * Inputs:   code - an ANSI escape code string (e.g., COLOR_RED).
+ * Output:   Returns code if color_enabled is true; returns an empty string otherwise.
+ */
 const std::string &Renderer::on(const std::string &code) const {
     static const std::string empty;
     return color_enabled ? code : empty;
 }
 
+/*
+ * Function: Renderer::line
+ * Purpose:  Generates a repeated-character string of a given width.
+ *           Used to build horizontal borders and separators in UI boxes.
+ * Inputs:   width    - the number of characters to repeat.
+ *           ascii_ch - the character to repeat (e.g., '-', '=', ' ').
+ * Output:   Returns a std::string of length width filled with ascii_ch.
+ */
 std::string Renderer::line(int width, char ascii_ch) const {
     return std::string(width, ascii_ch);
 }
 
+/*
+ * Function: Renderer::boxTop
+ * Purpose:  Generates the top border line of a UI box with dashes.
+ * Inputs:   width - the inner width of the box (between + corners).
+ * Output:   Returns a string in the form "  +---...---+".
+ */
 std::string Renderer::boxTop(int width) const {
     return "  +" + line(width, '-') + "+";
 }
 
+/*
+ * Function: Renderer::boxBottom
+ * Purpose:  Generates the bottom border line of a UI box with dashes.
+ * Inputs:   width - the inner width of the box (between + corners).
+ * Output:   Returns a string in the form "  +---...---+".
+ */
 std::string Renderer::boxBottom(int width) const {
     return "  +" + line(width, '-') + "+";
 }
 
+/*
+ * Function: Renderer::boxMiddle
+ * Purpose:  Generates a horizontal separator line of '=' characters without box corners.
+ *           Used for the status bar framing.
+ * Inputs:   width - the total width of the separator.
+ * Output:   Returns a string in the form "  ===...===".
+ */
 std::string Renderer::boxMiddle(int width) const {
     return "  " + line(width, '=');
 }
 
+/*
+ * Function: Renderer::boxEmpty
+ * Purpose:  Generates an empty interior line of a UI box (spaces between | borders).
+ * Inputs:   width - the inner width of the box (spaces between | borders).
+ * Output:   Returns a string in the form "  |   ...   |".
+ */
 std::string Renderer::boxEmpty(int width) const {
     return "  |" + line(width, ' ') + "|";
 }
 
+/*
+ * Function: Renderer::boxRow
+ * Purpose:  Generates an interior box line with text content, padded to the given width.
+ *           If content is shorter than width, it is right-padded with spaces.
+ * Inputs:   content - the text to display inside the box row.
+ *           width   - the total inner width the row must fill.
+ * Output:   Returns a string in the form "  |content   |" padded to width.
+ */
 std::string Renderer::boxRow(const std::string &content, int width) const {
     std::string row = content;
     if (static_cast<int>(row.size()) < width) {
@@ -55,7 +114,13 @@ std::string Renderer::boxRow(const std::string &content, int width) const {
     return "  |" + row + "|";
 }
 
-// Clear screen (Linux/Windows compatible)
+/*
+ * Function: Renderer::clearScreen
+ * Purpose:  Clears the terminal screen using the appropriate system command.
+ *           Uses "cls" on Windows and "clear" on POSIX systems.
+ * Inputs:   None.
+ * Output:   Clears the terminal; no return value.
+ */
 void Renderer::clearScreen() {
 #ifdef _WIN32
     std::system("cls");
@@ -64,7 +129,13 @@ void Renderer::clearScreen() {
 #endif
 }
 
-// Get single char input (cross-platform)
+/*
+ * Function: Renderer::getInput
+ * Purpose:  Reads a single keypress from the terminal without requiring Enter.
+ *           Uses _getch() on Windows and raw termios mode on POSIX.
+ * Inputs:   None.
+ * Output:   Returns the character corresponding to the key pressed.
+ */
 char Renderer::getInput() {
 #ifdef _WIN32
     return _getch();
@@ -80,23 +151,54 @@ char Renderer::getInput() {
 #endif
 }
 
+/*
+ * Function: Renderer::setColorEnabled
+ * Purpose:  Toggles ANSI color output on or off at runtime.
+ *           Color can only be enabled if the terminal actually supports ANSI codes.
+ * Inputs:   enabled - true to turn on colors, false to turn them off.
+ * Output:   Sets color_enabled to (enabled && ansi_color_supported).
+ */
 void Renderer::setColorEnabled(bool enabled) {
     color_enabled = enabled && ansi_color_supported;
 }
 
+/*
+ * Function: Renderer::isColorEnabled
+ * Purpose:  Reports whether ANSI color output is currently active.
+ * Inputs:   None.
+ * Output:   Returns true if colors are on; false if running in plain text mode.
+ */
 bool Renderer::isColorEnabled() const {
     return color_enabled;
 }
 
+/*
+ * Function: Renderer::setRenderMode
+ * Purpose:  Switches the render mode between ASCII and UNICODE at runtime.
+ * Inputs:   mode - the new RenderMode (ASCII or UNICODE).
+ * Output:   Updates the internal render_mode member.
+ */
 void Renderer::setRenderMode(RenderMode mode) {
     render_mode = mode;
 }
 
+/*
+ * Function: Renderer::getRenderMode
+ * Purpose:  Returns the current render mode setting.
+ * Inputs:   None.
+ * Output:   Returns ASCII or UNICODE as set during construction or by setRenderMode().
+ */
 RenderMode Renderer::getRenderMode() const {
     return render_mode;
 }
 
-// Welcome screen
+/*
+ * Function: Renderer::printWelcome
+ * Purpose:  Displays the game's splash/welcome screen with title and team info.
+ *           Clears the screen, draws a framed title box, and waits for a keypress.
+ * Inputs:   None.
+ * Output:   Prints the welcome banner to stdout; blocks until key press.
+ */
 void Renderer::printWelcome() {
     clearScreen();
     std::cout << on(COLOR_CYAN) << on(COLOR_BOLD);
@@ -116,10 +218,13 @@ void Renderer::printWelcome() {
     getInput();
 }
 
-// ===============================================================================
-// Menu helpers - all use render_mode to switch Unicode/ASCII
-// ===============================================================================
-
+/*
+ * Function: Renderer::menuBorder
+ * Purpose:  Generates a centered header banner string for a menu section.
+ *           Pads both sides of the title with '=' characters to reach ~26 chars.
+ * Inputs:   title - the text label to embed in the banner.
+ * Output:   Returns a string like " === TITLE ===".
+ */
 std::string Renderer::menuBorder(const std::string &title) const {
     int title_len = static_cast<int>(title.size());
     int side_len = (24 - title_len) / 2;
@@ -128,11 +233,23 @@ std::string Renderer::menuBorder(const std::string &title) const {
     return " " + side + title + side + " ";
 }
 
+/*
+ * Function: Renderer::menuSep
+ * Purpose:  Generates a horizontal separator line of '-' characters for tables.
+ * Inputs:   width - the number of '-' characters in the separator.
+ * Output:   Returns a string of "  " followed by width '-' characters.
+ */
 std::string Renderer::menuSep(int width) const {
     return "  " + std::string(width, '-');
 }
 
-// Main menu
+/*
+ * Function: Renderer::printMenu
+ * Purpose:  Displays the main menu with all available options.
+ *           Clears the screen and prints numbered options and prompts for input.
+ * Inputs:   None.
+ * Output:   Prints the main menu to stdout; does not read input itself.
+ */
 void Renderer::printMenu() {
     clearScreen();
     std::cout << COLOR_CYAN << COLOR_BOLD;
@@ -148,7 +265,13 @@ void Renderer::printMenu() {
     std::cout << "  Enter your choice: ";
 }
 
-// Difficulty selection menu
+/*
+ * Function: Renderer::printDifficultyMenu
+ * Purpose:  Displays the difficulty selection screen (Easy/Medium/Hard) with
+ *           color-coded labels and obstacle/box count descriptions.
+ * Inputs:   None.
+ * Output:   Prints the difficulty menu to stdout; does not read input.
+ */
 void Renderer::printDifficultyMenu() {
     clearScreen();
     std::cout << COLOR_CYAN << COLOR_BOLD;
@@ -165,7 +288,13 @@ void Renderer::printDifficultyMenu() {
     std::cout << "  Enter your choice: ";
 }
 
-// Controls display
+/*
+ * Function: Renderer::printControls
+ * Purpose:  Displays the full controls reference screen showing movement keys,
+ *           action keys, and symbol legend. Waits for a keypress to dismiss.
+ * Inputs:   None.
+ * Output:   Prints the controls page to stdout; blocks until key press.
+ */
 void Renderer::printControls() {
     clearScreen();
     std::cout << COLOR_CYAN << COLOR_BOLD;
@@ -201,7 +330,14 @@ void Renderer::printControls() {
     getInput();
 }
 
-// User progress display
+/*
+ * Function: Renderer::printUserProgress
+ * Purpose:  Displays the current user's progress including highest difficulty
+ *           reached and best step counts for each difficulty level.
+ * Inputs:   user      - the UserData record for the current player.
+ *           logged_in - whether a user is currently logged in (shows "not logged in" if false).
+ * Output:   Prints the progress screen to stdout; blocks until key press.
+ */
 void Renderer::printUserProgress(const UserData &user, bool logged_in) {
     clearScreen();
     std::cout << COLOR_CYAN << COLOR_BOLD;
@@ -233,7 +369,13 @@ void Renderer::printUserProgress(const UserData &user, bool logged_in) {
     getInput();
 }
 
-// Leaderboard display
+/*
+ * Function: Renderer::printLeaderboard
+ * Purpose:  Displays a ranked leaderboard table of players sorted by difficulty
+ *           then best score. Top 3 entries are highlighted with gold/silver/orange.
+ * Inputs:   entries - a sorted vector of LeaderboardEntry structs to display.
+ * Output:   Prints the leaderboard table to stdout; blocks until key press.
+ */
 void Renderer::printLeaderboard(const std::vector<LeaderboardEntry> &entries) {
     clearScreen();
     std::cout << COLOR_CYAN << COLOR_BOLD;
@@ -286,7 +428,19 @@ void Renderer::printLeaderboard(const std::vector<LeaderboardEntry> &entries) {
     getInput();
 }
 
-// Game status bar
+/*
+ * Function: Renderer::printGameStatus
+ * Purpose:  Renders the in-game status bar showing difficulty, steps taken,
+ *           target completion progress, and remaining undo count.
+ *           The bar width is dynamically computed from the content.
+ * Inputs:   diff      - the current difficulty (EASY, MEDIUM, or HARD).
+ *           steps     - total steps taken by the player this level.
+ *           completed - number of boxes currently on targets.
+ *           total     - total number of targets (boxes needed).
+ *           undo_left - remaining undos available.
+ *           undo_max  - maximum undos for this difficulty (0 = N/A).
+ * Output:   Prints a framed status bar to stdout with ANSI color coding.
+ */
 void Renderer::printGameStatus(Difficulty diff, int steps, int completed, int total,
                                 int undo_left, int undo_max) {
     // Build plain content to measure visible width
@@ -325,7 +479,18 @@ void Renderer::printGameStatus(Difficulty diff, int steps, int completed, int to
     std::cout << COLOR_RESET;
 }
 
-// Get cell type (polymorphism helper)
+/*
+ * Function: Renderer::getCellType
+ * Purpose:  Classifies a grid cell into a CellType enum used to select the
+ *           correct ANSI color when rendering. Detects player, box, box-on-target,
+ *           target, wall, obstacle, and empty cell types.
+ * Inputs:   cell             - the character symbol in the grid cell.
+ *           is_player_pos    - true if this cell is the player's current position.
+ *           target_positions - list of target positions to detect box-on-target.
+ *           row              - row index of the cell.
+ *           col              - column index of the cell.
+ * Output:   Returns the corresponding CellType enum value.
+ */
 Renderer::CellType Renderer::getCellType(char cell, bool is_player_pos,
                                          const std::vector<std::pair<int, int>> &target_positions,
                                          int row, int col) const {
@@ -355,7 +520,18 @@ Renderer::CellType Renderer::getCellType(char cell, bool is_player_pos,
     return CellType::EMPTY;
 }
 
-// Print single cell (virtual, subclasses can override - POLYMORPHISM)
+/*
+ * Function: Renderer::printCell
+ * Purpose:  Prints a single grid cell character to stdout with appropriate ANSI
+ *           color. Virtual so subclasses can override for custom rendering.
+ *           Falls back to plain character output when color is disabled.
+ * Inputs:   cell             - the character symbol to print.
+ *           is_player_position - true if this is the player's cell.
+ *           target_positions - list of target positions for box-on-target detection.
+ *           row              - row index of the cell.
+ *           col              - column index of the cell.
+ * Output:   Prints the colored (or plain) cell character to stdout.
+ */
 void Renderer::printCell(char cell, bool is_player_position,
                         const std::vector<std::pair<int, int>> &target_positions,
                         int row, int col) {
@@ -392,7 +568,16 @@ void Renderer::printCell(char cell, bool is_player_position,
     }
 }
 
-// Print map
+/*
+ * Function: Renderer::printMap
+ * Purpose:  Renders the full game grid to stdout, calling printCell() for each cell.
+ *           Adds two-space indentation per row for alignment.
+ * Inputs:   grid             - the 2D game grid to render.
+ *           target_positions - target positions for box-on-target color detection.
+ *           player_row       - current row of the player for PLAYER cell type.
+ *           player_col       - current column of the player.
+ * Output:   Prints the full 10x10 grid to stdout with surrounding blank lines.
+ */
 void Renderer::printMap(const std::vector<std::vector<char>> &grid,
                         const std::vector<std::pair<int, int>> &target_positions,
                         int player_row, int player_col) {
@@ -409,7 +594,13 @@ void Renderer::printMap(const std::vector<std::vector<char>> &grid,
     std::cout << "\n";
 }
 
-// Quick help
+/*
+ * Function: Renderer::printHelp
+ * Purpose:  Prints a compact in-game help overlay showing key bindings and goal.
+ *           Does not wait for input; the caller is responsible for that.
+ * Inputs:   None.
+ * Output:   Prints the quick-help text block to stdout.
+ */
 void Renderer::printHelp() {
     std::cout << "\n";
     std::cout << COLOR_CYAN;
@@ -424,7 +615,15 @@ void Renderer::printHelp() {
     std::cout << COLOR_RESET;
 }
 
-// Win screen
+/*
+ * Function: Renderer::printWinScreen
+ * Purpose:  Displays the level-complete win screen with step count, new-best
+ *           indicator (if applicable), and post-win action options (N/R/M).
+ * Inputs:   steps - the number of steps taken to complete the level.
+ *           user  - the UserData record used to compare against the best score.
+ *           diff  - the current difficulty for selecting the correct best score.
+ * Output:   Clears screen and prints the win screen to stdout; does not read input.
+ */
 void Renderer::printWinScreen(int steps, const UserData &user, Difficulty diff) {
     clearScreen();
     std::cout << COLOR_BRIGHT_GREEN << COLOR_BOLD;
@@ -457,22 +656,45 @@ void Renderer::printWinScreen(int steps, const UserData &user, Difficulty diff) 
     std::cout << "  Enter your choice: ";
 }
 
-// ===============================================================================
-// RendererWithEffects subclass - polymorphism (method overriding)
-// ===============================================================================
-
+/*
+ * Function: RendererWithEffects::RendererWithEffects (constructor)
+ * Purpose:  Constructs a RendererWithEffects with celebration_frames preset to 5.
+ *           Inherits all base Renderer behavior.
+ * Inputs:   color_enabled - whether ANSI colors should be used.
+ * Output:   A RendererWithEffects ready to use with animated win screen.
+ */
 RendererWithEffects::RendererWithEffects(bool color_enabled)
     : Renderer(color_enabled), celebration_frames(5) {}
 
+/*
+ * Function: RendererWithEffects::~RendererWithEffects (destructor)
+ * Purpose:  Virtual destructor for safe deletion of RendererWithEffects.
+ * Inputs:   None.
+ * Output:   Delegates to base Renderer destructor.
+ */
 RendererWithEffects::~RendererWithEffects() {}
 
-// Override win screen: add celebration effect (POLYMORPHISM)
+/*
+ * Function: RendererWithEffects::printWinScreen
+ * Purpose:  Overrides base printWinScreen to add an ASCII celebration animation
+ *           after the standard win screen. Demonstrates runtime polymorphism.
+ * Inputs:   steps - number of steps taken to win the level.
+ *           user  - the UserData used for best score comparison.
+ *           diff  - current difficulty.
+ * Output:   Calls base printWinScreen, then prints the celebration animation.
+ */
 void RendererWithEffects::printWinScreen(int steps, const UserData &user, Difficulty diff) {
     Renderer::printWinScreen(steps, user, diff);
     printCelebration();
 }
 
-// Celebration animation
+/*
+ * Function: RendererWithEffects::printCelebration
+ * Purpose:  Prints a simple ASCII staircase celebration animation using '*' symbols.
+ *           Number of animation frames controlled by celebration_frames member.
+ * Inputs:   None.
+ * Output:   Prints the celebration pattern to stdout, then "Press any key" prompt.
+ */
 void RendererWithEffects::printCelebration() {
     std::cout << COLOR_YELLOW;
     for (int i = 0; i < celebration_frames; i++) {
