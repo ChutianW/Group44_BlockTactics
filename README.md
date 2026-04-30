@@ -17,6 +17,13 @@
 
 ---
 
+## How to play🤔
+
+# Demo Video
+[![Watch the video](https://img.youtube.com/vi/8Kya-oxEXeA/maxresdefault.jpg)](https://youtu.be/8Kya-oxEXeA)
+
+---
+
 ## Features Implemented
 
 ### Core Gameplay
